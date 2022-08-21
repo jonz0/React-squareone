@@ -18,7 +18,7 @@ import { FaLocationArrow, FaTimes } from "react-icons/fa";
 import { useJsApiLoader, GoogleMap } from "@react-google-maps/api";
 
 const center = { lat: 48.8584, lng: 2.2945 };
-
+console.log(process.env.REACT_APP_GOOGLE_MAPS_API_KEY);
 function App() {
   console.log(process.env);
   const { isLoaded } = useJsApiLoader({
