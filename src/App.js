@@ -1,54 +1,50 @@
-import React, { useState, useRef, useEffect } from "react";
-import logo from "./logo.svg";
-import "./App.css";
-import TodoList from "./TodoList";
-import { v4 as uuidv4 } from "uuid";
+import React from "react";
+import ReactDOM from "react-dom";
+import { useRef, useState } from "react";
+import {
+  ChakraProvider,
+  theme,
+  Box,
+  Button,
+  ButtonGroup,
+  Flex,
+  HStack,
+  IconButton,
+  Input,
+  SkeletonText,
+  Text,
+} from "@chakra-ui/react";
+import { FaLocationArrow, FaTimes } from "react-icons/fa";
+import { useJsApiLoader, GoogleMap } from "@react-google-maps/api";
+
+const center = { lat: 48.8584, lng: 2.2945 };
 
 function App() {
-  const todoNameRef = useRef();
-  const [todos, setTodos] = useState([]);
-  const LOCAL_STORAGE_KEY = "todoApp.todos";
+  console.log(process.env);
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+  });
 
-  function handleAddTodo(event) {
-    const name = todoNameRef.current.value;
-    const uuid = uuidv4();
-    if (name === "") return;
-    console.log(name);
-    setTodos((prevTodos) => {
-      return [...prevTodos, { id: uuid, name: name, complete: false }];
-    });
-    console.log(uuid);
-    todoNameRef.current.value = null;
+  if (!isLoaded) {
+    return "Loading";
   }
-
-  function toggleTodo(id) {
-    const newTodos = [...todos];
-    const todo = newTodos.find((todo) => todo.id === id);
-    todo.complete = !todo.complete;
-    setTodos(newTodos);
-  }
-
-  function handleClearTodos() {
-    setTodos(todos.filter((todo) => !todo.complete));
-  }
-
-  useEffect(() => {
-    const storedTodos = JSON.parse(localStorage.getItem(LOCAL_STORAGE_KEY));
-    if (storedTodos) setTodos((prevTodos) => [...prevTodos, ...storedTodos]);
-  }, []);
-
-  useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(todos));
-  }, [todos]);
 
   return (
-    <>
-      <TodoList todos={todos} toggleTodo={toggleTodo} />
-      <input ref={todoNameRef} type="text" />
-      <button onClick={handleAddTodo}>Add Todo</button>
-      <button onClick={handleClearTodos}>Clear Todos</button>
-      <div>{todos.filter((todo) => !todo.complete).length} left to do</div>
-    </>
+    <Flex
+      position="relative"
+      flexDirection="column"
+      alignItems="center"
+      h="100vh"
+      w="100vw"
+    >
+      <Box position="absolute" left={0} top={0} h="100%" w="100%">
+        <GoogleMap
+          center={center}
+          zoom={15}
+          mapContainerStyle={{ width: "100%", height: "100%" }}
+        ></GoogleMap>
+      </Box>
+    </Flex>
   );
 }
 
