@@ -1,5 +1,6 @@
 import React from "react";
-import ReactDOM from "react-dom";
+import ReactDOM from "react-dom/client";
+import "./index.css";
 import App from "./App";
 import { ChakraProvider, theme } from "@chakra-ui/react";
 
@@ -10,11 +11,11 @@ import { ChakraProvider, theme } from "@chakra-ui/react";
 //   console.log(`Server listening on ${PORT}`);
 // });
 
-ReactDOM.render(
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(
   <React.StrictMode>
     <ChakraProvider theme={theme}>
       <App />
     </ChakraProvider>
-  </React.StrictMode>,
-  document.getElementById("root")
+  </React.StrictMode>
 );
