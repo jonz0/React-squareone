@@ -29,6 +29,8 @@ import MarkerList from "./MarkerList";
 import { v4 as uuidv4 } from "uuid";
 
 const center = { lat: 48.8584, lng: 2.2945 };
+let invalidLong = false;
+let invalidLat = false;
 
 function App() {
   const [markers, setMarkers] = useState([]);
@@ -46,32 +48,31 @@ function App() {
   function handleAddMarker(event) {
     const lat = latRef.current.value;
     const long = longRef.current.value;
+
+    if (lat < -90 || lat > 90) {
+      invalidLat = true;
+      latRef.current.value = null;
+      longRef.current.value = null;
+      return;
+    } else {
+      invalidLat = false;
+    }
+
+    if (long < -180 || long > 180) {
+      invalidLong = true;
+      latRef.current.value = null;
+      longRef.current.value = null;
+      return;
+    } else {
+      invalidLong = false;
+    }
+    const uuid = uuidv4();
     setMarkers((prevMarkers) => {
       return [
         ...prevMarkers,
-        {
-          id: uuidv4(),
-          latitude: parseFloat(lat),
-          longitude: parseFloat(long),
-        },
+        { key: uuid, latitude: parseFloat(lat), longitude: parseFloat(long) },
       ];
     });
-    console.log(lat, long);
-    latRef.current.value = null;
-    longRef.current.value = null;
-  }
-
-  function handleDisplayMarkers(event) {
-    const listItems = markers.map((marker) => {
-      return (
-        <MarkerF
-          key={marker.id}
-          position={(parseFloat(marker.lat), parseFloat(marker.long))}
-        />
-      );
-    });
-
-    console.log(listItems.key);
   }
 
   return (
@@ -93,18 +94,17 @@ function App() {
           }}
           mapContainerStyle={{ width: "100%", height: "100%" }}
         >
-          <MarkerF position={center} />
           <MarkerList markers={markers} />
-          {/* <MyMarker key={uuidv4()} lat={parseFloat(15)} long={parseFloat(15)} /> */}
         </GoogleMap>
       </Box>
 
       <Box position="absolute" right={0} top={0} h="100%" w="25%">
-        <Input type="text" ref={latRef}></Input>
-        <Input type="text" ref={longRef}></Input>
+        Lat: <Input type="text" ref={latRef}></Input>
+        {invalidLat && <p>Invalid Lat</p>}
+        Long: <Input type="text" ref={longRef}></Input>
+        {invalidLong && <p>Invalid Long</p>}
         <button onClick={handleAddMarker}>Add Marker</button>
-        <br />
-        <button onClick={handleDisplayMarkers}>Display Markers</button>
+        {invalidLong && <p>lit</p>}
       </Box>
     </Flex>
   );
