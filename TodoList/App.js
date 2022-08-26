@@ -13,11 +13,9 @@ function App() {
     const name = todoNameRef.current.value;
     const uuid = uuidv4();
     if (name === "") return;
-    console.log(name);
     setTodos((prevTodos) => {
       return [...prevTodos, { id: uuid, name: name, complete: false }];
     });
-    console.log(uuid);
     todoNameRef.current.value = null;
   }
 
