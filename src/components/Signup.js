@@ -3,7 +3,7 @@ import React, { useRef, useState } from "react";
 import { Form, Button, Card, Alert } from "react-bootstrap";
 import "./Signup.css";
 import { useAuth } from "../contexts/AuthContext";
-import { Link, Navigate } from "react-router-dom";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 
 export default function Signup() {
   const emailRef = useRef();
@@ -12,6 +12,7 @@ export default function Signup() {
   const { signup, currentUser } = useAuth();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -23,10 +24,13 @@ export default function Signup() {
     try {
       setError("");
       setLoading(true);
+      console.log("1");
       await signup(emailRef.current.value, passwordRef.current.value);
-      Navigate.push("/");
+      console.log("2");
+      navigate("/");
+      console.log("3");
     } catch (error) {
-      setError("Failed to create an account");
+      setError();
     }
     setLoading(false);
   }
@@ -36,7 +40,6 @@ export default function Signup() {
       <Card>
         <Card.Body>
           <h2 className="text-center mb-4">Sign up</h2>
-          current user signup: {currentUser.email}
           {error && <Alert variant="danger">{error}</Alert>}
           <Form onSubmit={handleSubmit}>
             <Form.Group id="email">

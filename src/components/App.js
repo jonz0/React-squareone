@@ -1,5 +1,4 @@
 import React from "react";
-import ReactDOM from "react-dom";
 import { useRef, useState } from "react";
 import Signup from "./Signup";
 import "bootstrap/dist/css/bootstrap.min.css";
@@ -9,6 +8,8 @@ import { useAuth } from "../contexts/AuthContext";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Dashboard from "./Dashboard";
 import Login from "./Login";
+import PrivateRoute from "./PrivateRoute";
+import { Switch } from "@chakra-ui/react";
 
 function App() {
   return (
@@ -21,7 +22,14 @@ function App() {
           <Router>
             <AuthProvider>
               <Routes>
-                <Route exact path="/" element={<Dashboard />} />
+                <Route
+                  path="/"
+                  element={
+                    <PrivateRoute>
+                      <Dashboard />
+                    </PrivateRoute>
+                  }
+                />
                 <Route path="/signup" element={<Signup />} />
                 <Route path="/login" element={<Login />} />
               </Routes>

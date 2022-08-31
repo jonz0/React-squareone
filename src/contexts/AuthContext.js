@@ -1,5 +1,6 @@
 import React, { useContext, useState, useEffect } from "react";
 import { auth } from "../firebase";
+import { Navigate } from "react-router-dom";
 
 const AuthContext = React.createContext();
 
@@ -19,6 +20,10 @@ export default function AuthProvider({ children }) {
     return auth.signInWithEmailAndPassword(email, password);
   }
 
+  function logout() {
+    return auth.signOut();
+  }
+
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       setCurrentUser(user);
@@ -30,7 +35,10 @@ export default function AuthProvider({ children }) {
   const value = {
     currentUser,
     signup,
+    login,
+    logout,
   };
+
   return (
     <AuthContext.Provider value={value}>
       {!loading && children}
