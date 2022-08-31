@@ -7,13 +7,13 @@ import { auth } from "../firebase";
 export default function Dashboard() {
   const [error, setError] = useState("");
   const { currentUser, logout } = useAuth();
-  const history = useNavigate();
+  const navigate = useNavigate();
 
   async function handleLogout() {
     setError("");
     try {
       await logout();
-      history.push("/");
+      navigate("/");
     } catch (error) {
       setError("Failed to log out");
     }
