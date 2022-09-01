@@ -5,10 +5,11 @@ import "./Signup.css";
 import { useAuth } from "../contexts/AuthContext";
 import { Link, Navigate, useNavigate } from "react-router-dom";
 
-export default function Login() {
+export default function UpdateProfile() {
   const emailRef = useRef();
   const passwordRef = useRef();
-  const { login, currentUser } = useAuth();
+  const passwordConfirmRef = useRef();
+  const { currentUser } = useAuth();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -16,13 +17,20 @@ export default function Login() {
   async function handleSubmit(event) {
     event.preventDefault();
 
+    if (passwordRef.current.value !== passwordConfirmRef.current.value) {
+      return setError("Passwords do not match");
+    }
+
     try {
       setError("");
       setLoading(true);
-      await login(emailRef.current.value, passwordRef.current.value);
+      console.log("1");
+      await signup(emailRef.current.value, passwordRef.current.value);
+      console.log("2");
       navigate("/");
+      console.log("3");
     } catch (error) {
-      setError("Failed to sign in.");
+      setError();
     }
     setLoading(false);
   }
@@ -31,12 +39,16 @@ export default function Login() {
     <>
       <Card>
         <Card.Body>
-          <h2 className="text-center mb-4">Log In</h2>
+          <h2 className="text-center mb-4">Update Profile</h2>
           {error && <Alert variant="danger">{error}</Alert>}
           <Form onSubmit={handleSubmit}>
             <Form.Group id="email">
               <Form.Label>Email</Form.Label>
-              <Form.Control type="email" ref={emailRef} required></Form.Control>
+              <Form.Control
+                type="email"
+                ref={emailRef}
+                defaultValue={currentUser.email}
+              />
             </Form.Group>
 
             <Form.Group id="password">
@@ -45,19 +57,26 @@ export default function Login() {
                 type="password"
                 ref={passwordRef}
                 required
+                placeholder="Leave blank to keep the same password"
+              ></Form.Control>
+            </Form.Group>
+
+            <Form.Group id="password-confirm">
+              <Form.Label>Password Confirmation</Form.Label>
+              <Form.Control
+                type="password"
+                ref={passwordConfirmRef}
+                required
               ></Form.Control>
             </Form.Group>
             <Button disabled={loading} className="w-100" type="submit">
-              Log In
+              Update
             </Button>
           </Form>
-          <div className="w-100 text-center mt-3">
-            <Link to="/forgot-password">Forgot Password?</Link>
-          </div>
         </Card.Body>
       </Card>
       <div className="w-100 text-center mt-2">
-        Need an account? <Link to="/signup">Sign up</Link>
+        Already have an account? Need an account? <Link to="/">Cancel</Link>
       </div>
     </>
   );
