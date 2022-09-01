@@ -24,11 +24,8 @@ export default function Signup() {
     try {
       setError("");
       setLoading(true);
-      console.log("1");
       await signup(emailRef.current.value, passwordRef.current.value);
-      console.log("2");
       navigate("/");
-      console.log("3");
     } catch (error) {
       setError();
     }

@@ -9,30 +9,38 @@ export default function UpdateProfile() {
   const emailRef = useRef();
   const passwordRef = useRef();
   const passwordConfirmRef = useRef();
-  const { currentUser } = useAuth();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { currentUser, updateEmail, updatePassword } = useAuth();
 
-  async function handleSubmit(event) {
+  function handleSubmit(event) {
     event.preventDefault();
 
     if (passwordRef.current.value !== passwordConfirmRef.current.value) {
       return setError("Passwords do not match");
     }
 
-    try {
-      setError("");
-      setLoading(true);
-      console.log("1");
-      await signup(emailRef.current.value, passwordRef.current.value);
-      console.log("2");
-      navigate("/");
-      console.log("3");
-    } catch (error) {
-      setError();
+    const promises = [];
+    setLoading(true);
+    setError("");
+    if (emailRef.current.value !== currentUser.email) {
+      promises.push(updateEmail(emailRef.current.value));
     }
-    setLoading(false);
+    if (passwordRef.current.value !== currentUser.password) {
+      promises.push(updatePassword(passwordRef.current.value));
+    }
+
+    Promise.all(promises)
+      .then(() => {
+        navigate("/");
+      })
+      .catch(() => {
+        setError("Failed to update account.");
+      })
+      .finally(() => {
+        setLoading(false);
+      });
   }
 
   return (
@@ -76,7 +84,7 @@ export default function UpdateProfile() {
         </Card.Body>
       </Card>
       <div className="w-100 text-center mt-2">
-        Already have an account? Need an account? <Link to="/">Cancel</Link>
+        Cancel <Link to="/">Cancel</Link>
       </div>
     </>
   );
