@@ -1,16 +1,15 @@
-import userEvent from "@testing-library/user-event";
 import React, { useRef, useState } from "react";
 import { Form, Button, Card, Alert } from "react-bootstrap";
 import "./Signup.css";
 import { useAuth } from "../contexts/AuthContext";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import validator from "validator";
 
 export default function Signup() {
   const emailRef = useRef();
   const passwordRef = useRef();
   const passwordConfirmRef = useRef();
-  const { signup, currentUser } = useAuth();
+  const { signup } = useAuth();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -18,19 +17,16 @@ export default function Signup() {
   async function handleSubmit(event) {
     event.preventDefault();
 
-    switch (true) {
-      case !validator.isEmail(emailRef.current.value):
-        return setError("Not a valid email.");
-      case passwordRef.current.value !== passwordConfirmRef.current.value:
-        return setError("Passwords do not match.");
-      case passwordRef.current.value.length < 6:
-        return setError(
-          "Password should have a minimum length of 6 characters."
-        );
-      case passwordRef.current.value.length > 32:
-        return setError(
-          "Password should have a maximum length of 32 characters."
-        );
+    if (!validator.isEmail(emailRef.current.value)) {
+      return setError("Not a valid email.");
+    } else if (passwordRef.current.value !== passwordConfirmRef.current.value) {
+      return setError("Passwords do not match.");
+    } else if (passwordRef.current.value.length < 6) {
+      return setError("Password should have a minimum length of 6 characters.");
+    } else if (passwordRef.current.value.length > 32) {
+      return setError(
+        "Password should have a maximum length of 32 characters."
+      );
     }
 
     try {

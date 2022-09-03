@@ -1,9 +1,9 @@
-import userEvent from "@testing-library/user-event";
 import React, { useRef, useState } from "react";
 import { Form, Button, Card, Alert } from "react-bootstrap";
 import "./Signup.css";
 import { useAuth } from "../contexts/AuthContext";
-import { Link, Navigate, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import validator from "validator";
 
 export default function ForgotPassword() {
   const emailRef = useRef();
@@ -11,10 +11,13 @@ export default function ForgotPassword() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
 
   async function handleSubmit(event) {
     event.preventDefault();
+
+    if (!validator.isEmail(emailRef.current.value)) {
+      return setError("Not a valid email.");
+    }
 
     try {
       setError("");
