@@ -1,11 +1,21 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
-import App from "./components/App";
+import "./index.css";
+import App from "./App";
+import { ChakraProvider, theme } from "@chakra-ui/react";
 
-/* Area for mounting/rendering the main TodoList component in the root element. */
+// const express = require("express");
+// const PORT = process.env.PORT || 3001;
+// const app = express();
+// app.listen(PORT, () => {
+//   console.log(`Server listening on ${PORT}`);
+// });
+
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
-    <App />
+    <ChakraProvider theme={theme}>
+      <App />
+    </ChakraProvider>
   </React.StrictMode>
 );
