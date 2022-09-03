@@ -4,6 +4,7 @@ import { Form, Button, Card, Alert } from "react-bootstrap";
 import "./Signup.css";
 import { useAuth } from "../contexts/AuthContext";
 import { Link, Navigate, useNavigate } from "react-router-dom";
+import validator from "validator";
 
 export default function Signup() {
   const emailRef = useRef();
@@ -17,8 +18,19 @@ export default function Signup() {
   async function handleSubmit(event) {
     event.preventDefault();
 
-    if (passwordRef.current.value !== passwordConfirmRef.current.value) {
-      return setError("Passwords do not match");
+    switch (true) {
+      case !validator.isEmail(emailRef.current.value):
+        return setError("Not a valid email.");
+      case passwordRef.current.value !== passwordConfirmRef.current.value:
+        return setError("Passwords do not match.");
+      case passwordRef.current.value.length < 6:
+        return setError(
+          "Password should have a minimum length of 6 characters."
+        );
+      case passwordRef.current.value.length > 32:
+        return setError(
+          "Password should have a maximum length of 32 characters."
+        );
     }
 
     try {
@@ -27,7 +39,7 @@ export default function Signup() {
       await signup(emailRef.current.value, passwordRef.current.value);
       navigate("/");
     } catch (error) {
-      setError();
+      setError("Failed to create an account.");
     }
     setLoading(false);
   }

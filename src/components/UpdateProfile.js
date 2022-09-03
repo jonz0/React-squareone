@@ -4,6 +4,7 @@ import { Form, Button, Card, Alert } from "react-bootstrap";
 import "./Signup.css";
 import { useAuth } from "../contexts/AuthContext";
 import { Link, Navigate, useNavigate } from "react-router-dom";
+import validator from "validator";
 
 export default function UpdateProfile() {
   const emailRef = useRef();
@@ -14,11 +15,22 @@ export default function UpdateProfile() {
   const navigate = useNavigate();
   const { currentUser, updateEmail, updatePassword } = useAuth();
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
 
-    if (passwordRef.current.value !== passwordConfirmRef.current.value) {
-      return setError("Passwords do not match");
+    switch (true) {
+      case !validator.isEmail(emailRef.current.value):
+        return setError("Not a valid email.");
+      case passwordRef.current.value !== passwordConfirmRef.current.value:
+        return setError("Passwords do not match.");
+      case passwordRef.current.value.length < 6:
+        return setError(
+          "Password should have a minimum length of 6 characters."
+        );
+      case passwordRef.current.value.length > 32:
+        return setError(
+          "Password should have a maximum length of 32 characters."
+        );
     }
 
     const promises = [];
@@ -32,10 +44,10 @@ export default function UpdateProfile() {
     }
 
     Promise.all(promises)
-      .then(() => {
-        navigate("/");
+      .then((result) => {
+        setError("Failed to update account.");
       })
-      .catch(() => {
+      .catch((error) => {
         setError("Failed to update account.");
       })
       .finally(() => {
