@@ -2,7 +2,7 @@ import React, { useRef, useState } from "react";
 import { Form, Button, Card, Alert } from "react-bootstrap";
 import "./Signup.css";
 import { useAuth } from "../contexts/AuthContext";
-import { Link } from "react-router-dom";
+import { Link, Navigate } from "react-router-dom";
 import validator from "validator";
 
 export default function UpdateProfile() {
@@ -40,7 +40,7 @@ export default function UpdateProfile() {
 
     Promise.all(promises)
       .then((result) => {
-        setError("Failed to update account.");
+        Navigate("/");
       })
       .catch((error) => {
         setError("Failed to update account.");

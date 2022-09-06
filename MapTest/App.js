@@ -1,30 +1,7 @@
 import React from "react";
-import ReactDOM from "react-dom";
 import { useRef, useState } from "react";
-import {
-  ChakraProvider,
-  theme,
-  Box,
-  Button,
-  ButtonGroup,
-  Flex,
-  HStack,
-  IconButton,
-  Input,
-  SkeletonText,
-  Text,
-} from "@chakra-ui/react";
-import { FaLocationArrow, FaTimes } from "react-icons/fa";
-import {
-  useJsApiLoader,
-  GoogleMap,
-  MarkerF,
-  Autocomplete,
-  DirectionsRenderer,
-  Wrapper,
-  Status,
-} from "@react-google-maps/api";
-import MyMarker from "./MyMarker";
+import { Box, Flex, Input } from "@chakra-ui/react";
+import { useJsApiLoader, GoogleMap } from "@react-google-maps/api";
 import MarkerList from "./MarkerList";
 import { v4 as uuidv4 } from "uuid";
 
