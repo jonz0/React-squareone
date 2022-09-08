@@ -24,6 +24,10 @@ export default function Dashboard() {
         <Card.Body>
           <h2 className="text-cetner mb-4">Profile</h2>
           {error && <Alert variant="danger">{error}</Alert>}
+          <strong>
+            Welcome, {useAuth().currentUser.email}!
+            <br />
+          </strong>
           <strong>Email: </strong> {currentUser.email}
           <Link to="/update-profile" className="btn btn-primary w-100 mt-3">
             Update Profile
