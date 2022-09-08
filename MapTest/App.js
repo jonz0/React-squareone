@@ -11,7 +11,6 @@ let invalidLat = false;
 
 function App() {
   const [markers, setMarkers] = useState([]);
-  const [map, setMap] = useState(/** @type google.maps.Map */ (null));
   const latRef = useRef();
   const longRef = useRef();
   const { isLoaded } = useJsApiLoader({
