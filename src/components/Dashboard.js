@@ -32,6 +32,19 @@ export default function Dashboard() {
           <Link to="/update-profile" className="btn btn-primary w-100 mt-3">
             Update Profile
           </Link>
+          <hr />
+          <p>User Details:</p>
+          <ul>
+            <li>
+              First name: <span id="user-firstname" />
+            </li>
+            <li>
+              Last name: <span id="user-lastname" />
+            </li>
+            <li>
+              Age: <span id="user-age" />
+            </li>
+          </ul>
         </Card.Body>
       </Card>
       <div className="w-100 text-center mt-2">

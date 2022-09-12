@@ -2,30 +2,28 @@ import React, { useRef, useState } from "react";
 import { Form, Button, Card, Alert } from "react-bootstrap";
 import "./Signup.css";
 import { useAuth } from "../contexts/AuthContext";
-import { Link, Navigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import validator from "validator";
+import { doc, setDoc, collection } from "firebase/firestore";
+import { storage, db } from "../firebase";
 
 export default function UpdateProfile() {
   const emailRef = useRef();
   const passwordRef = useRef();
+  const firstNameRef = useRef();
+  const lastNameRef = useRef();
+  const ageRef = useRef();
   const passwordConfirmRef = useRef();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { currentUser, updateEmail, updatePassword } = useAuth();
+  const navigate = useNavigate();
 
-  async function handleSubmit(event) {
+  function handleSubmit(event) {
     event.preventDefault();
 
-    if (!validator.isEmail(emailRef.current.value)) {
-      return setError("Not a valid email.");
-    } else if (passwordRef.current.value !== passwordConfirmRef.current.value) {
-      return setError("Passwords do not match.");
-    } else if (passwordRef.current.value.length < 6) {
-      return setError("Password should have a minimum length of 6 characters.");
-    } else if (passwordRef.current.value.length > 32) {
-      return setError(
-        "Password should have a maximum length of 32 characters."
-      );
+    if (passwordRef.current.value !== passwordConfirmRef.current.value) {
+      return setError("Passwords do not match");
     }
 
     const promises = [];
@@ -38,11 +36,18 @@ export default function UpdateProfile() {
       promises.push(updatePassword(passwordRef.current.value));
     }
 
+    const userRef = doc(db, "users", currentUser.uid);
+    setDoc(
+      userRef,
+      { firstname: "lit", lastname: "daniel", age: "3" },
+      { merge: true }
+    );
+
     Promise.all(promises)
-      .then((result) => {
-        Navigate("/");
+      .then(() => {
+        navigate("/");
       })
-      .catch((error) => {
+      .catch(() => {
         setError("Failed to update account.");
       })
       .finally(() => {
@@ -64,6 +69,21 @@ export default function UpdateProfile() {
                 ref={emailRef}
                 defaultValue={currentUser.email}
               />
+            </Form.Group>
+
+            <Form.Group id="firstname">
+              <Form.Label>First name</Form.Label>
+              <Form.Control type="text" ref={firstNameRef}></Form.Control>
+            </Form.Group>
+
+            <Form.Group id="lastname">
+              <Form.Label>Last name</Form.Label>
+              <Form.Control type="text" ref={lastNameRef}></Form.Control>
+            </Form.Group>
+
+            <Form.Group id="age">
+              <Form.Label>Age</Form.Label>
+              <Form.Control type="text" ref={ageRef}></Form.Control>
             </Form.Group>
 
             <Form.Group id="password">
