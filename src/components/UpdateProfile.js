@@ -26,6 +26,25 @@ export default function UpdateProfile() {
       return setError("Passwords do not match");
     }
 
+    const validName = new RegExp(
+      "/^[a-zA-ZàáâäãåąčćęèéêëėįìíîïłńòóôöõøùúûüųūÿýżźñçčšžÀÁÂÄÃÅĄĆČĖĘÈÉÊËÌÍÎÏĮŁŃÒÓÔÖÕØÙÚÛÜŲŪŸÝŻŹÑßÇŒÆČŠŽ∂ð ,.'-]+$/u"
+    );
+
+    if (
+      validName.test(firstNameRef.current.value) ||
+      validName.test(lastNameRef.current.value)
+    ) {
+      return setError("Please enter a valid name.");
+    }
+
+    if (
+      isNaN(ageRef.current.value) ||
+      ageRef.current.value < 1 ||
+      ageRef.current.value > 150
+    ) {
+      return setError("Please enter a valid age.");
+    }
+
     const promises = [];
     setLoading(true);
     setError("");
@@ -39,7 +58,11 @@ export default function UpdateProfile() {
     const userRef = doc(db, "users", currentUser.uid);
     setDoc(
       userRef,
-      { firstname: "lit", lastname: "daniel", age: "3" },
+      {
+        firstname: firstNameRef.current.value,
+        lastname: lastNameRef.current.value,
+        age: ageRef.current.value,
+      },
       { merge: true }
     );
 
@@ -91,7 +114,6 @@ export default function UpdateProfile() {
               <Form.Control
                 type="password"
                 ref={passwordRef}
-                required
                 placeholder="Leave blank to keep the same password"
               ></Form.Control>
             </Form.Group>
@@ -101,7 +123,6 @@ export default function UpdateProfile() {
               <Form.Control
                 type="password"
                 ref={passwordConfirmRef}
-                required
               ></Form.Control>
             </Form.Group>
             <Button disabled={loading} className="w-100" type="submit">

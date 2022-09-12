@@ -2,11 +2,16 @@ import React, { useState } from "react";
 import { Card, Button, Alert } from "react-bootstrap";
 import { useAuth } from "../contexts/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
+import { storage, db } from "../firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function Dashboard() {
   const [error, setError] = useState("");
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [age, setAge] = useState("");
 
   async function handleLogout() {
     setError("");
@@ -17,6 +22,20 @@ export default function Dashboard() {
       setError("Failed to log out");
     }
   }
+
+  async function getData() {
+    const docRef = doc(db, "users", currentUser.uid);
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      setFirstName(docSnap.data().firstName);
+      setLastName(docSnap.data().lastName);
+      setAge(docSnap.data().age);
+    } else {
+      console.log("No such document!");
+    }
+  }
+
+  getData();
 
   return (
     <>
@@ -36,13 +55,13 @@ export default function Dashboard() {
           <p>User Details:</p>
           <ul>
             <li>
-              First name: <span id="user-firstname" />
+              First name: <span id="user-firstname"></span>
             </li>
             <li>
-              Last name: <span id="user-lastname" />
+              Last name: <span id="user-lastname"></span>
             </li>
             <li>
-              Age: <span id="user-age" />
+              Age: <span id="user-age"></span>
             </li>
           </ul>
         </Card.Body>
