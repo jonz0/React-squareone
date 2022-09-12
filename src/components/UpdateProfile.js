@@ -59,11 +59,11 @@ export default function UpdateProfile() {
     setDoc(
       userRef,
       {
-        firstname: firstNameRef.current.value,
-        lastname: lastNameRef.current.value,
+        firstName: firstNameRef.current.value,
+        lastName: lastNameRef.current.value,
         age: ageRef.current.value,
       },
-      { merge: true }
+      { merge: false }
     );
 
     Promise.all(promises)

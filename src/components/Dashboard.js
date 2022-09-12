@@ -1,17 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Card, Button, Alert } from "react-bootstrap";
 import { useAuth } from "../contexts/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
-import { storage, db } from "../firebase";
+import { storage, db, auth } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
 
 export default function Dashboard() {
   const [error, setError] = useState("");
   const { currentUser, logout } = useAuth();
   const navigate = useNavigate();
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [age, setAge] = useState("");
+  const [firstName, setFirstName] = useState();
+  const [lastName, setLastName] = useState();
+  const [age, setAge] = useState();
 
   async function handleLogout() {
     setError("");
@@ -23,19 +23,24 @@ export default function Dashboard() {
     }
   }
 
-  async function getData() {
+  async function handleDataDisplay() {
     const docRef = doc(db, "users", currentUser.uid);
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
       setFirstName(docSnap.data().firstName);
       setLastName(docSnap.data().lastName);
       setAge(docSnap.data().age);
+      console.log(docSnap.data().firstName);
+      console.log(docSnap.data().lastName);
+      console.log(docSnap.data().age);
     } else {
       console.log("No such document!");
     }
   }
 
-  getData();
+  useEffect(() => {
+    handleDataDisplay();
+  });
 
   return (
     <>
@@ -55,13 +60,13 @@ export default function Dashboard() {
           <p>User Details:</p>
           <ul>
             <li>
-              First name: <span id="user-firstname"></span>
+              First name: <span id="user-firstname">{firstName}</span>
             </li>
             <li>
-              Last name: <span id="user-lastname"></span>
+              Last name: <span id="user-lastname">{lastName}</span>
             </li>
             <li>
-              Age: <span id="user-age"></span>
+              Age: <span id="user-age">{age}</span>
             </li>
           </ul>
         </Card.Body>
