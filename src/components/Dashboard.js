@@ -30,11 +30,8 @@ export default function Dashboard() {
       setFirstName(docSnap.data().firstName);
       setLastName(docSnap.data().lastName);
       setAge(docSnap.data().age);
-      console.log(docSnap.data().firstName);
-      console.log(docSnap.data().lastName);
-      console.log(docSnap.data().age);
     } else {
-      console.log("No such document!");
+      setError("Error: please contact the big boss");
     }
   }
 
