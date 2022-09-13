@@ -3,6 +3,7 @@ import { Form, Button, Card, Alert } from "react-bootstrap";
 import "../css/Signup.css";
 import { useAuth } from "../contexts/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
+import "../css/App.css";
 
 export default function Login() {
   const emailRef = useRef();
@@ -27,7 +28,7 @@ export default function Login() {
   }
 
   return (
-    <>
+    <div class="auth-center">
       <Card>
         <Card.Body>
           <h2 className="text-center mb-4">Log In</h2>
@@ -58,6 +59,6 @@ export default function Login() {
       <div className="w-100 text-center mt-2">
         Need an account? <Link to="/signup">Sign up</Link>
       </div>
-    </>
+    </div>
   );
 }

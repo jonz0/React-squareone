@@ -4,6 +4,7 @@ import "../css/Signup.css";
 import { useAuth } from "../contexts/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import validator from "validator";
+import "../css/App.css";
 
 export default function Signup() {
   const emailRef = useRef();
@@ -41,7 +42,7 @@ export default function Signup() {
   }
 
   return (
-    <>
+    <div class="auth-center">
       <Card>
         <Card.Body>
           <h2 className="text-center mb-4">Sign up</h2>
@@ -79,6 +80,6 @@ export default function Signup() {
         Already have an account? Need an account?{" "}
         <Link to="/login">Log In</Link>
       </div>
-    </>
+    </div>
   );
 }

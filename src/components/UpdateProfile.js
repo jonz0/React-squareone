@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import validator from "validator";
 import { doc, setDoc, collection } from "firebase/firestore";
 import { storage, db } from "../firebase";
+import "../css/App.css";
 
 export default function UpdateProfile() {
   const emailRef = useRef();
@@ -79,7 +80,7 @@ export default function UpdateProfile() {
   }
 
   return (
-    <>
+    <div class="auth-center">
       <Card>
         <Card.Body>
           <h2 className="text-center mb-4">Update Profile</h2>
@@ -134,6 +135,6 @@ export default function UpdateProfile() {
       <div className="w-100 text-center mt-2">
         Cancel <Link to="/">Cancel</Link>
       </div>
-    </>
+    </div>
   );
 }

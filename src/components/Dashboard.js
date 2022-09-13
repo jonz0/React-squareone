@@ -4,6 +4,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { Link, useNavigate } from "react-router-dom";
 import { storage, db, auth } from "../firebase";
 import { doc, getDoc } from "firebase/firestore";
+import "../css/App.css";
 
 export default function Dashboard() {
   const [error, setError] = useState("");
@@ -40,7 +41,7 @@ export default function Dashboard() {
   });
 
   return (
-    <>
+    <div class="auth-center">
       <Card>
         <Card.Body>
           <h2 className="text-cetner mb-4">Profile</h2>
@@ -79,6 +80,6 @@ export default function Dashboard() {
           Log Out
         </Button>
       </div>
-    </>
+    </div>
   );
 }
