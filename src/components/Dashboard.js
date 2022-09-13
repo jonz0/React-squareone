@@ -66,6 +66,9 @@ export default function Dashboard() {
               Age: <span id="user-age">{age}</span>
             </li>
           </ul>
+          <Link to="/images" className="btn btn-success w-100 mt-3">
+            Image Hub
+          </Link>
         </Card.Body>
       </Card>
       <div className="w-100 text-center mt-2">
