@@ -16,10 +16,15 @@ export default function Images() {
   const currentUserId = currentUser.uid + "/";
   const docRef = doc(db, "users", currentUser.uid);
 
-  async function displayUserImages() {
+  async function displayUserData() {
     const docSnap = await getDoc(docRef);
     if (docSnap.exists()) {
       const imageListRef = docSnap.data().userStorageRef;
+
+      // Displays user data
+      setFirstName(docSnap.data().firstName);
+      setLastName(docSnap.data().lastName);
+      setAge(docSnap.data().age);
 
       // Displays images stored in uid/images/
       listAll(ref(storage, imageListRef)).then((response) => {
@@ -35,20 +40,8 @@ export default function Images() {
   }
 
   useEffect(() => {
-    handleDataDisplay();
-    displayUserImages();
+    displayUserData();
   }, []);
-
-  async function handleDataDisplay() {
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      setFirstName(docSnap.data().firstName);
-      setLastName(docSnap.data().lastName);
-      setAge(docSnap.data().age);
-    } else {
-      console.log("Error: please contact the big boss");
-    }
-  }
 
   const userRef = doc(db, "users", currentUser.uid);
   function uploadImage() {
