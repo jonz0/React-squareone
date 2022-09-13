@@ -4,6 +4,7 @@ import { doc, getDoc } from "firebase/firestore";
 import { useAuth } from "../contexts/AuthContext";
 import { ref, uploadBytes, listAll, getDownloadURL } from "firebase/storage";
 import { v4 as uuidv4 } from "uuid";
+import "../css/Images.css";
 
 export default function Images() {
   const [imageUpload, setImageUpload] = useState(null);
@@ -47,6 +48,15 @@ export default function Images() {
     }
   }
 
+  // const userRef = doc(db, "users", currentUser.uid);
+  // setDoc(
+  //   userRef,
+  //   {
+  //     singleImageUrl:
+  //   },
+  //   { merge: true }
+  // );
+
   return (
     <div>
       <p>User Details:</p>
@@ -68,7 +78,7 @@ export default function Images() {
       <button onClick={uploadImage}>Upload Image</button>
 
       {imageList.map((url) => {
-        return <img key={uuidv4()} src={url} />;
+        return <img key={uuidv4()} src={url} id="displayImg" />;
       })}
     </div>
   );
