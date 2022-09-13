@@ -69,6 +69,9 @@ export default function Dashboard() {
           <Link to="/images" className="btn btn-success w-100 mt-3">
             Image Hub
           </Link>
+          <Link to="/map" className="btn btn-danger w-100 mt-3">
+            User Map
+          </Link>
         </Card.Body>
       </Card>
       <div className="w-100 text-center mt-2">
