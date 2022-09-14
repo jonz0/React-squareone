@@ -25,15 +25,15 @@ export default function Dashboard() {
   }
 
   async function handleDataDisplay() {
-    const docRef = doc(db, "users", currentUser.uid);
-    const docSnap = await getDoc(docRef);
-    if (docSnap.exists()) {
-      setFirstName(docSnap.data().firstName);
-      setLastName(docSnap.data().lastName);
-      setAge(docSnap.data().age);
-    } else {
-      setError("Error: please contact the big boss");
-    }
+    // const docRef = doc(db, "users", currentUser.uid);
+    // const docSnap = await getDoc(docRef);
+    // if (docSnap.exists()) {
+    //   setFirstName(docSnap.data().firstName);
+    //   setLastName(docSnap.data().lastName);
+    //   setAge(docSnap.data().age);
+    // } else {
+    //   setError("Error: please contact the big boss");
+    // }
   }
 
   useEffect(() => {
