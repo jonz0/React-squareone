@@ -1,9 +1,12 @@
-import React from "react";
-import { useRef, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Box, Flex, Input } from "@chakra-ui/react";
 import { useJsApiLoader, GoogleMap } from "@react-google-maps/api";
 import MarkerList from "./MarkerList";
 import { v4 as uuidv4 } from "uuid";
+import { storage, db, auth } from "../firebase";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { useAuth } from "../contexts/AuthContext";
+import { ref, uploadBytes, listAll, getDownloadURL } from "firebase/storage";
 
 const center = { lat: 48.8584, lng: 2.2945 };
 let invalidLong = false;
@@ -16,6 +19,9 @@ export default function Map() {
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
   });
+  const { currentUser, logout } = useAuth();
+  const currentUserId = currentUser.uid + "/";
+  const docRef = doc(db, "users", currentUser.uid);
 
   if (!isLoaded) {
     return "Loading";
