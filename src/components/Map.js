@@ -9,6 +9,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { getDatabase, child, push, update } from "firebase/database";
 import { Form, Button, Card, Alert } from "react-bootstrap";
+import exifr from "exifr";
 
 const center = { lat: 48.8584, lng: 2.2945 };
 
@@ -34,54 +35,55 @@ export default function Map() {
     return "Loading";
   }
 
-  function handleSubmit() {
+  async function handleSubmit() {
     if (imageUpload == null) return;
     const markerId = uuidv4();
     const markerName = `${markerId}`;
     const markerRef = doc(db, "users", currentUserId, "markers", markerName);
-    const imageName = `${markerId}/images/${imageUpload.name + uuidv4()}`;
+    const imageName = `${currentUserId}/${markerId}-images/${
+      imageUpload.name + uuidv4()
+    }`;
     const imageRef = ref(storage, imageName);
+    const cors = require("cors")({ origin: true });
 
     // Uploads image to firestore
     uploadBytes(imageRef, imageUpload).then((snapshot) => {
       getDownloadURL(snapshot.ref).then((url) => {
+        const { lat, long } = exifr.gps(url);
+        if (lat < -90 || lat > 90) {
+          return setError("Invalid Latitude");
+        }
+
+        if (long < -180 || long > 180) {
+          return setError("Invalid Longitude");
+        }
+
         setImageList((prev) => [...prev, url]);
+        setMarkers((prevMarkers) => {
+          return [
+            ...prevMarkers,
+            {
+              key: uuidv4(),
+              latitude: parseFloat(lat),
+              longitude: parseFloat(long),
+            },
+          ];
+        });
+
+        setDoc(
+          markerRef,
+          {
+            latitude: lat,
+            longitude: long,
+            city: "",
+            country: "",
+            visitTime: "2012-04-23T18:25:43.511Z",
+            imagesRef: markerName + "/images/",
+          },
+          { merge: false }
+        );
       });
     });
-
-    // Adds marker
-
-    const lat = latRef.current.value;
-    const long = longRef.current.value;
-
-    if (lat < -90 || lat > 90) {
-      return setError("Invalid Latitude");
-    }
-
-    if (long < -180 || long > 180) {
-      return setError("Invalid Longitude");
-    }
-
-    const uuid = uuidv4();
-    setMarkers((prevMarkers) => {
-      return [
-        ...prevMarkers,
-        { key: uuid, latitude: parseFloat(lat), longitude: parseFloat(long) },
-      ];
-    });
-
-    setDoc(
-      markerRef,
-      {
-        latitude: lat,
-        longitude: long,
-        city: "",
-        country: "",
-        visitTime: "2012-04-23T18:25:43.511Z",
-        imagesRef: markerName + "/images/",
-      },
-      { merge: false }
-    );
   }
 
   return (
