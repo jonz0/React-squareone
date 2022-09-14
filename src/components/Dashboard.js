@@ -41,7 +41,7 @@ export default function Dashboard() {
   });
 
   return (
-    <div className="auth-center">
+    <div id="auth-center">
       <Card>
         <Card.Body>
           <h2 className="text-cetner mb-4">Profile</h2>

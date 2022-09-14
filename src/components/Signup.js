@@ -42,7 +42,7 @@ export default function Signup() {
   }
 
   return (
-    <div class="auth-center">
+    <div id="auth-center">
       <Card>
         <Card.Body>
           <h2 className="text-center mb-4">Sign up</h2>

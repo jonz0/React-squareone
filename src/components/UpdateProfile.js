@@ -80,7 +80,7 @@ export default function UpdateProfile() {
   }
 
   return (
-    <div class="auth-center">
+    <div id="auth-center">
       <Card>
         <Card.Body>
           <h2 className="text-center mb-4">Update Profile</h2>
