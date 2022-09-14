@@ -67,7 +67,7 @@ export default function Images() {
   }
 
   return (
-    <div class="images-center">
+    <div className="images-center">
       <p>User Details:</p>
       <ul>
         <li>
