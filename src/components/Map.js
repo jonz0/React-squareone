@@ -24,7 +24,6 @@ export default function Map() {
 
   const [imageUpload, setImageUpload] = useState(null);
   const [imageList, setImageList] = useState([]);
-  let imgUrl = useRef("");
 
   if (!isLoaded) {
     return "Loading";
@@ -45,19 +44,45 @@ export default function Map() {
         setImageList((prev) => [...prev, url]);
 
         const { latitude: lat, longitude: long } = await exifr.gps(url);
+        setMarkers((prevMarkers) => {
+          return [
+            ...prevMarkers,
+            {
+              key: uuidv4(),
+              latitude: parseFloat(lat),
+              longitude: parseFloat(long),
+            },
+          ];
+        });
+
         let reverseGeoUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}`;
         fetch(reverseGeoUrl)
           .then((response) => response.json())
           .then((data) => {
             let parts = data.results[0].address_components;
-            let city = "";
-            let country = "";
+            let city,
+              state,
+              country,
+              street,
+              postal = "";
             parts.forEach((part) => {
               if (part.types.includes("country")) {
                 country = part.long_name;
               }
+              if (part.types.includes("administrative_area_level_1")) {
+                state += part.long_name;
+              }
               if (part.types.includes("locality")) {
                 city = part.long_name;
+              }
+              if (part.types.includes("street_number")) {
+                street += part.long_name;
+              }
+              if (part.types.includes("route")) {
+                street += " " + part.long_name;
+              }
+              if (part.types.includes("postal_code")) {
+                postal += part.long_name;
               }
             });
 
@@ -67,8 +92,11 @@ export default function Map() {
                 {
                   latitude: output.latitude,
                   longitude: output.longitude,
+                  street: street,
                   city: city,
+                  state: state,
                   country: country,
+                  postal: postal,
                   visitTime: output.DateTimeOriginal.toUTCString(),
                   imagesRef: markerName + "/images/",
                 },
@@ -79,6 +107,34 @@ export default function Map() {
           .catch((err) => console.warn("reverse geocoding fetch error"));
       });
     });
+
+    async function displayUserData() {
+      const docSnap = await getDoc(docRef);
+      if (docSnap.exists()) {
+        const imageListRef = docSnap.data().userStorageRef;
+
+        // Displays user data
+        setFirstName(docSnap.data().firstName);
+        setLastName(docSnap.data().lastName);
+        setAge(docSnap.data().age);
+      } else {
+        console.log("Error: please contact the big boss");
+      }
+    }
+
+    function handleAddMarker(latitude, longitude) {
+      if (latitude < -90 || latitude > 90) {
+        setError("Invalid latitude");
+      } else {
+        setError("");
+      }
+
+      if (longitude < -180 || longitude > 180) {
+        setError("Invalid longitude");
+      } else {
+        setError("");
+      }
+    }
   }
 
   return (
