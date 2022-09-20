@@ -125,7 +125,7 @@ export default function Map() {
                   country: country,
                   postal: postal,
                   visitTime: output.DateTimeOriginal.toUTCString(),
-                  imagesRef: markerName + "/images/",
+                  imagesRef: markerName + "-images/",
                 },
                 { merge: false }
               );

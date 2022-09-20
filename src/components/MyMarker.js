@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { MarkerF, InfoWindowF } from "@react-google-maps/api";
 import { useAuth } from "../contexts/AuthContext";
 import {
@@ -11,26 +11,43 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { storage, db, auth, newPostKey } from "../firebase";
-import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { ref, uploadBytes, getDownloadURL, listAll } from "firebase/storage";
 import { getDatabase, child, push, update } from "firebase/database";
+import { v4 as uuidv4 } from "uuid";
+import "../css/App.css";
 
 export default function MyMarker({ marker }) {
   const { currentUser, logout } = useAuth();
   const [popupShowing, setPopupShowing] = useState(false);
   let markerPos = { lat: marker.latitude, lng: marker.longitude };
-  const markerRef = doc(db, "users", currentUser.uid, "markers", marker.key);
+  const currentUserId = currentUser.uid;
+  const markerRef = doc(db, "users", currentUserId, "markers", marker.key);
+  const [imageList, setImageList] = useState([]);
 
-  async function fetchImage() {
+  useEffect(() => {
+    fetchImagesRef();
+  }, []);
+
+  async function fetchImagesRef() {
+    console.log("fetching...");
     const docSnap = await getDoc(markerRef);
-    const imageRef = ref(storage, docSnap.data().imageRef);
-    return getDownloadURL(imageRef);
+    const imagesRef = `${currentUserId}/${docSnap.data().imagesRef}`;
+
+    if (docSnap.exists()) {
+      listAll(ref(storage, imagesRef)).then((response) => {
+        response.items.forEach((item) => {
+          getDownloadURL(item).then((url) => {
+            setImageList((prev) => [...prev, url]);
+          });
+        });
+      });
+    } else {
+      console.log("Error: please contact the big boss");
+    }
   }
 
-  function handlePopupShowing() {
+  async function handlePopupShowing() {
     setPopupShowing(!popupShowing);
-    fetchImage();
-    console.log(marker.key);
-    console.log({ fetchImage });
   }
 
   return (
@@ -43,7 +60,9 @@ export default function MyMarker({ marker }) {
           }}
         >
           <div>
-            <img src={fetchImage}></img>
+            {imageList.map((url) => {
+              return <img key={uuidv4()} src={url} id="marker-image" />;
+            })}
             <p>Test</p>
           </div>
         </InfoWindowF>
