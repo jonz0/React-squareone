@@ -55,6 +55,30 @@ export default function Map() {
           ];
         });
 
+        // Creates marker
+        if (lat < -90 || lat > 90) {
+          setError("Invalid latitude");
+        } else {
+          setError("");
+        }
+
+        if (long < -180 || long > 180) {
+          setError("Invalid longitude");
+        } else {
+          setError("");
+        }
+
+        setMarkers((prevMarkers) => {
+          return [
+            ...prevMarkers,
+            {
+              key: uuidv4(),
+              latitude: parseFloat(lat),
+              longitude: parseFloat(long),
+            },
+          ];
+        });
+
         let reverseGeoUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}`;
         fetch(reverseGeoUrl)
           .then((response) => response.json())
@@ -108,33 +132,16 @@ export default function Map() {
       });
     });
 
-    async function displayUserData() {
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        const imageListRef = docSnap.data().userStorageRef;
+    // async function displayUserData() {
+    //   const docSnap = await getDoc(imageRef);
+    //   if (docSnap.exists()) {
+    //     const imageListRef = docSnap.data().userStorageRef;
 
-        // Displays user data
-        setFirstName(docSnap.data().firstName);
-        setLastName(docSnap.data().lastName);
-        setAge(docSnap.data().age);
-      } else {
-        console.log("Error: please contact the big boss");
-      }
-    }
-
-    function handleAddMarker(latitude, longitude) {
-      if (latitude < -90 || latitude > 90) {
-        setError("Invalid latitude");
-      } else {
-        setError("");
-      }
-
-      if (longitude < -180 || longitude > 180) {
-        setError("Invalid longitude");
-      } else {
-        setError("");
-      }
-    }
+    //     // Displays user data
+    //   } else {
+    //     console.log("Error: please contact the big boss");
+    //   }
+    // }
   }
 
   return (
@@ -164,6 +171,7 @@ export default function Map() {
         <div>
           <input
             type="file"
+            multiple
             onChange={(event) => setImageUpload(event.target.files[0])}
           />
 
