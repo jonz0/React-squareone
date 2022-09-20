@@ -4,7 +4,14 @@ import { useJsApiLoader, GoogleMap } from "@react-google-maps/api";
 import MarkerList from "./MarkerList";
 import { v4 as uuidv4 } from "uuid";
 import { storage, db, auth, newPostKey } from "../firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  collection,
+  query,
+  where,
+  getDocs,
+} from "firebase/firestore";
 import { useAuth } from "../contexts/AuthContext";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { getDatabase, child, push, update } from "firebase/database";
@@ -25,11 +32,27 @@ export default function Map() {
   const [imageUpload, setImageUpload] = useState(null);
   const [imageList, setImageList] = useState([]);
 
+  useEffect(() => {
+    async function fetchData() {
+      const markerCollectionRef = collection(
+        db,
+        "users",
+        currentUserId,
+        "markers"
+      );
+      const querySnapshot = await getDocs(markerCollectionRef);
+      querySnapshot.forEach((doc) => {
+        renderMarkers(doc.data().latitude, doc.data().longitude);
+      });
+    }
+    fetchData();
+  }, []);
+
   if (!isLoaded) {
     return "Loading";
   }
 
-  async function handleSubmit() {
+  function handleSubmit() {
     if (imageUpload == null) return;
     const markerId = uuidv4();
     const markerName = `${markerId}`;
@@ -44,16 +67,7 @@ export default function Map() {
         setImageList((prev) => [...prev, url]);
 
         const { latitude: lat, longitude: long } = await exifr.gps(url);
-        setMarkers((prevMarkers) => {
-          return [
-            ...prevMarkers,
-            {
-              key: uuidv4(),
-              latitude: parseFloat(lat),
-              longitude: parseFloat(long),
-            },
-          ];
-        });
+        renderMarkers(lat, long);
 
         // Creates marker
         if (lat < -90 || lat > 90) {
@@ -131,17 +145,33 @@ export default function Map() {
           .catch((err) => console.warn("reverse geocoding fetch error"));
       });
     });
+  }
 
-    // async function displayUserData() {
-    //   const docSnap = await getDoc(imageRef);
-    //   if (docSnap.exists()) {
-    //     const imageListRef = docSnap.data().userStorageRef;
+  async function debug() {
+    console.log(currentUserId);
+    const markerCollectionRef = collection(
+      db,
+      "users",
+      currentUserId,
+      "markers"
+    );
+    const querySnapshot = await getDocs(markerCollectionRef);
+    querySnapshot.forEach((doc) => {
+      console.log(doc.data().latitude);
+    });
+  }
 
-    //     // Displays user data
-    //   } else {
-    //     console.log("Error: please contact the big boss");
-    //   }
-    // }
+  function renderMarkers(lat, long) {
+    setMarkers((prevMarkers) => {
+      return [
+        ...prevMarkers,
+        {
+          key: uuidv4(),
+          latitude: parseFloat(lat),
+          longitude: parseFloat(long),
+        },
+      ];
+    });
   }
 
   return (
@@ -172,7 +202,10 @@ export default function Map() {
           <input
             type="file"
             multiple
-            onChange={(event) => setImageUpload(event.target.files[0])}
+            // onChange={(event) => setImageUpload(event.target.files[0])}
+            onChange={(event) => {
+              setImageUpload(event.target.files[0]);
+            }}
           />
 
           {imageList.map((url) => {
@@ -181,6 +214,8 @@ export default function Map() {
         </div>
         {error && <Alert variant="danger">{error}</Alert>}
         <button onClick={handleSubmit}>Submit</button>
+        <br />
+        <button onClick={debug}>Debug</button>
       </Box>
     </Flex>
   );
