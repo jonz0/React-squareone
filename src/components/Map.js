@@ -3,7 +3,6 @@ import { Box, Flex, Input } from "@chakra-ui/react";
 import { useJsApiLoader, GoogleMap } from "@react-google-maps/api";
 import MarkerList from "./MarkerList";
 import { v4 as uuidv4 } from "uuid";
-import { storage, db, auth, newPostKey } from "../firebase";
 import {
   doc,
   setDoc,
@@ -13,6 +12,7 @@ import {
   getDocs,
 } from "firebase/firestore";
 import { useAuth } from "../contexts/AuthContext";
+import { storage, db, auth, newPostKey } from "../firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { getDatabase, child, push, update } from "firebase/database";
 import { Form, Button, Card, Alert } from "react-bootstrap";
@@ -30,7 +30,7 @@ export default function Map() {
   const [error, setError] = useState("");
 
   const [imageUpload, setImageUpload] = useState(null);
-  const [imageList, setImageList] = useState([]);
+  // const [imageList, setImageList] = useState([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -42,7 +42,7 @@ export default function Map() {
       );
       const querySnapshot = await getDocs(markerCollectionRef);
       querySnapshot.forEach((doc) => {
-        renderMarkers(doc.data().latitude, doc.data().longitude);
+        renderMarkers(doc.data().latitude, doc.data().longitude, doc.id);
       });
     }
     fetchData();
@@ -64,10 +64,10 @@ export default function Map() {
 
     uploadBytes(imageRef, imageUpload).then((snapshot) => {
       getDownloadURL(snapshot.ref).then(async (url) => {
-        setImageList((prev) => [...prev, url]);
+        // setImageList((prev) => [...prev, url]);
 
         const { latitude: lat, longitude: long } = await exifr.gps(url);
-        renderMarkers(lat, long);
+        renderMarkers(lat, long, markerId);
 
         // Creates marker
         if (lat < -90 || lat > 90) {
@@ -82,26 +82,15 @@ export default function Map() {
           setError("");
         }
 
-        setMarkers((prevMarkers) => {
-          return [
-            ...prevMarkers,
-            {
-              key: uuidv4(),
-              latitude: parseFloat(lat),
-              longitude: parseFloat(long),
-            },
-          ];
-        });
-
         let reverseGeoUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}`;
         fetch(reverseGeoUrl)
           .then((response) => response.json())
           .then((data) => {
             let parts = data.results[0].address_components;
-            let city,
-              state,
-              country,
-              street,
+            let city = "",
+              state = "",
+              country = "",
+              street = "",
               postal = "";
             parts.forEach((part) => {
               if (part.types.includes("country")) {
@@ -161,12 +150,12 @@ export default function Map() {
     });
   }
 
-  function renderMarkers(lat, long) {
+  function renderMarkers(lat, long, id) {
     setMarkers((prevMarkers) => {
       return [
         ...prevMarkers,
         {
-          key: uuidv4(),
+          key: id,
           latitude: parseFloat(lat),
           longitude: parseFloat(long),
         },
@@ -193,7 +182,7 @@ export default function Map() {
           }}
           mapContainerStyle={{ width: "100%", height: "100%" }}
         >
-          <MarkerList markers={markers} />
+          <MarkerList markers={markers} key={uuidv4()} />
         </GoogleMap>
       </Box>
 
@@ -208,9 +197,9 @@ export default function Map() {
             }}
           />
 
-          {imageList.map((url) => {
+          {/* {imageList.map((url) => {
             return <img key={uuidv4()} src={url} id="displayImg" />;
-          })}
+          })} */}
         </div>
         {error && <Alert variant="danger">{error}</Alert>}
         <button onClick={handleSubmit}>Submit</button>
