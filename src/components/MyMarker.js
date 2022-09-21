@@ -32,6 +32,7 @@ export default function MyMarker({ marker }) {
     console.log("fetching...");
     const docSnap = await getDoc(markerRef);
     const imagesRef = `${currentUserId}/${docSnap.data().imagesRef}`;
+    // console.log(imagesRef);
 
     if (docSnap.exists()) {
       listAll(ref(storage, imagesRef)).then((response) => {
@@ -46,7 +47,7 @@ export default function MyMarker({ marker }) {
     }
   }
 
-  async function handlePopupShowing() {
+  function handlePopupShowing() {
     setPopupShowing(!popupShowing);
   }
 

@@ -10,6 +10,7 @@ import {
   query,
   where,
   getDocs,
+  getDoc,
 } from "firebase/firestore";
 import { useAuth } from "../contexts/AuthContext";
 import { storage, db, auth, newPostKey } from "../firebase";
@@ -17,8 +18,10 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import { getDatabase, child, push, update } from "firebase/database";
 import { Form, Button, Card, Alert } from "react-bootstrap";
 import exifr, { gps } from "exifr";
+import { SHA3 } from "crypto-js";
 
 const center = { lat: 48.8584, lng: 2.2945 };
+const readerBuffer = new FileReader();
 
 export default function Map() {
   const [markers, setMarkers] = useState([]);
@@ -52,90 +55,157 @@ export default function Map() {
     return "Loading";
   }
 
-  function handleSubmit() {
-    if (imageUpload == null) return;
+  function latLongErrors(lat, long) {
+    const latInvalid = lat < -90 || lat > 90;
+    const longInvalid = long < -180 || long > 180;
+    if (latInvalid && longInvalid) {
+      return setError("Invalid latitude and longitude");
+    } else if (latInvalid) {
+      return setError("Invalid latitude");
+    } else if (longInvalid) {
+      return setError("Invalid longitude");
+    } else {
+      setError("");
+    }
+  }
+
+  async function handleAddMarker(imageUpload) {
     const markerId = uuidv4();
     const markerName = `${markerId}`;
     const markerRef = doc(db, "users", currentUserId, "markers", markerName);
-    const imageName = `${currentUserId}/${markerId}-images/${
-      imageUpload.name + uuidv4()
-    }`;
-    const imageRef = ref(storage, imageName);
+    const imageHashes = collection(db, "users", currentUserId, "imageRefs");
+    let imageHash = "";
+    let duplicateFound = false;
 
-    uploadBytes(imageRef, imageUpload).then((snapshot) => {
-      getDownloadURL(snapshot.ref).then(async (url) => {
-        // setImageList((prev) => [...prev, url]);
+    await getBase64(imageUpload)
+      .then((result) => {
+        imageUpload["base64"] = result;
+        imageHash = SHA3(result, { outputLength: 160 }).toString();
 
-        const { latitude: lat, longitude: long } = await exifr.gps(url);
-        renderMarkers(lat, long, markerId);
-
-        // Creates marker
-        if (lat < -90 || lat > 90) {
-          setError("Invalid latitude");
-        } else {
-          setError("");
+        if (checkDuplicateImages(imageHash) == true) {
+          duplicateFound = true;
+          return;
         }
 
-        if (long < -180 || long > 180) {
-          setError("Invalid longitude");
-        } else {
-          setError("");
-        }
-
-        let reverseGeoUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}`;
-        fetch(reverseGeoUrl)
-          .then((response) => response.json())
-          .then((data) => {
-            let parts = data.results[0].address_components;
-            let city = "",
-              state = "",
-              country = "",
-              street = "",
-              postal = "";
-            parts.forEach((part) => {
-              if (part.types.includes("country")) {
-                country = part.long_name;
-              }
-              if (part.types.includes("administrative_area_level_1")) {
-                state += part.long_name;
-              }
-              if (part.types.includes("locality")) {
-                city = part.long_name;
-              }
-              if (part.types.includes("street_number")) {
-                street += part.long_name;
-              }
-              if (part.types.includes("route")) {
-                street += " " + part.long_name;
-              }
-              if (part.types.includes("postal_code")) {
-                postal += part.long_name;
-              }
-            });
-
-            exifr.parse(url).then((output) => {
-              setDoc(
-                markerRef,
-                {
-                  latitude: output.latitude,
-                  longitude: output.longitude,
-                  street: street,
-                  city: city,
-                  state: state,
-                  country: country,
-                  postal: postal,
-                  visitTime: output.DateTimeOriginal.toUTCString(),
-                  imagesRef: markerName + "-images/",
-                },
-                { merge: false }
-              );
-            });
-          })
-          .catch((err) => console.warn("reverse geocoding fetch error"));
+        setDoc(doc(imageHashes, imageHash), { exists: true }, { merge: false });
+      })
+      .catch((err) => {
+        console.log(err);
       });
+
+    if (!duplicateFound) {
+      const docRef = doc(imageHashes, imageHash);
+      const docSnap = await getDoc(docRef);
+
+      // if (docSnap.exists) {
+      //   console.log("Duplicate image not uploaded");
+      //   return;
+      // }
+
+      const imageName = `${currentUserId}/${markerId}-images/${imageHash}`;
+      const imageRef = ref(storage, imageName);
+      // console.log("imageName: " + imageName);
+
+      /** Uploads the passed image to Firestore under 'uid/markerId-images/', and
+       * also uploads a document containing marker information associated with
+       * the image to Firebase under 'users/uid/markers/markerId/'.
+       */
+      uploadBytes(imageRef, imageUpload).then((snapshot) => {
+        getDownloadURL(snapshot.ref).then(async (url) => {
+          // setImageList((prev) => [...prev, url]);
+
+          const { latitude: lat, longitude: long } = await exifr.gps(url);
+          renderMarkers(lat, long, markerId);
+
+          // Marker error handling
+          latLongErrors(lat, long);
+
+          let reverseGeoUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}`;
+          fetch(reverseGeoUrl)
+            .then((response) => response.json())
+            .then((data) => {
+              let parts = data.results[0].address_components;
+              let city = "",
+                state = "",
+                country = "",
+                street = "",
+                postal = "";
+              parts.forEach((part) => {
+                if (part.types.includes("country")) {
+                  country = part.long_name;
+                }
+                if (part.types.includes("administrative_area_level_1")) {
+                  state += part.long_name;
+                }
+                if (part.types.includes("locality")) {
+                  city = part.long_name;
+                }
+                if (part.types.includes("street_number")) {
+                  street += part.long_name;
+                }
+                if (part.types.includes("route")) {
+                  street += " " + part.long_name;
+                }
+                if (part.types.includes("postal_code")) {
+                  postal += part.long_name;
+                }
+              });
+
+              exifr.parse(url).then((output) => {
+                setDoc(
+                  markerRef,
+                  {
+                    latitude: output.latitude,
+                    longitude: output.longitude,
+                    street: street,
+                    city: city,
+                    state: state,
+                    country: country,
+                    postal: postal,
+                    visitTime: output.DateTimeOriginal.toUTCString(),
+                    imagesRef: markerName + "-images/",
+                  },
+                  { merge: false }
+                );
+              });
+            })
+            .catch((err) => console.warn("reverse geocoding fetch error"));
+        });
+      });
+    }
+  }
+
+  function getBase64(file) {
+    return new Promise((resolve) => {
+      let fileInfo;
+      let baseURL = "";
+      // Make new FileReader
+      let reader = new FileReader();
+
+      // Convert the file to base64 text
+      reader.readAsDataURL(file);
+
+      // on reader load somthing...
+      reader.onload = () => {
+        // Make a fileInfo Object
+        // console.log("Called", reader);
+        baseURL = reader.result;
+        // console.log(baseURL);
+        resolve(baseURL);
+      };
+      // console.log(fileInfo);
     });
   }
 
+  /** Calls handleAddMarker on each uploaded file upon submitting. */
+  function handleSubmit() {
+    if (imageUpload.length == 0) return;
+    imageUpload.forEach((file) => {
+      handleAddMarker(file);
+    });
+  }
+
+  /** Debug button (remove on production) */
   async function debug() {
     console.log(currentUserId);
     const markerCollectionRef = collection(
@@ -150,6 +220,7 @@ export default function Map() {
     });
   }
 
+  /** Adds a marker to the markers state */
   function renderMarkers(lat, long, id) {
     setMarkers((prevMarkers) => {
       return [
@@ -161,6 +232,28 @@ export default function Map() {
         },
       ];
     });
+  }
+
+  /** Stores an array of uploaded files into the imageUpload state. */
+  function handleFiles(event) {
+    setImageUpload(null);
+    const images = [];
+    Array.from(event.target.files).forEach((file) => {
+      images.push(file);
+      setImageUpload(images);
+    });
+  }
+
+  async function checkDuplicateImages(imageHash) {
+    const docRef = doc(db, "users", currentUserId, "imageRefs", imageHash);
+    const docSnap = await getDoc(docRef);
+
+    if (docSnap.exists()) {
+      console.log("Duplicate image not uploaded");
+      return true;
+    }
+    console.log("No duplicates");
+    return false;
   }
 
   return (
@@ -188,14 +281,7 @@ export default function Map() {
 
       <Box position="absolute" right={0} top={0} h="100%" w="25%">
         <div>
-          <input
-            type="file"
-            multiple
-            // onChange={(event) => setImageUpload(event.target.files[0])}
-            onChange={(event) => {
-              setImageUpload(event.target.files[0]);
-            }}
-          />
+          <input type="file" multiple onChange={handleFiles} />
 
           {/* {imageList.map((url) => {
             return <img key={uuidv4()} src={url} id="displayImg" />;
