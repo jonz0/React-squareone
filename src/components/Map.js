@@ -75,32 +75,26 @@ export default function Map() {
     const markerRef = doc(db, "users", currentUserId, "markers", markerName);
     const imageHashes = collection(db, "users", currentUserId, "imageRefs");
     let imageHash = "";
-    let duplicateFound = false;
 
     await getBase64(imageUpload)
       .then((result) => {
         imageUpload["base64"] = result;
         imageHash = SHA3(result, { outputLength: 160 }).toString();
-
-        if (checkDuplicateImages(imageHash) == true) {
-          duplicateFound = true;
-          return;
-        }
-
-        setDoc(doc(imageHashes, imageHash), { exists: true }, { merge: false });
       })
       .catch((err) => {
         console.log(err);
       });
 
-    if (!duplicateFound) {
-      const docRef = doc(imageHashes, imageHash);
-      const docSnap = await getDoc(docRef);
+    console.log("got here");
+    console.log(imageHash);
+    console.log(!checkDuplicateImages(imageHash));
 
-      // if (docSnap.exists) {
-      //   console.log("Duplicate image not uploaded");
-      //   return;
-      // }
+    checkDuplicateImages(imageHash).then((result) => {
+      if (result) {
+        return;
+      }
+      console.log("No duplicates");
+      setDoc(doc(imageHashes, imageHash), { exists: true }, { merge: false });
 
       const imageName = `${currentUserId}/${markerId}-images/${imageHash}`;
       const imageRef = ref(storage, imageName);
@@ -172,7 +166,7 @@ export default function Map() {
             .catch((err) => console.warn("reverse geocoding fetch error"));
         });
       });
-    }
+    });
   }
 
   function getBase64(file) {
@@ -199,7 +193,7 @@ export default function Map() {
 
   /** Calls handleAddMarker on each uploaded file upon submitting. */
   function handleSubmit() {
-    if (imageUpload.length == 0) return;
+    if (imageUpload.length === 0) return;
     imageUpload.forEach((file) => {
       handleAddMarker(file);
     });
@@ -251,9 +245,9 @@ export default function Map() {
     if (docSnap.exists()) {
       console.log("Duplicate image not uploaded");
       return true;
+    } else {
+      return false;
     }
-    console.log("No duplicates");
-    return false;
   }
 
   return (
