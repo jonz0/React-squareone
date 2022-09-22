@@ -31,11 +31,13 @@ export default function MyMarker({ marker }) {
   async function fetchImagesRef() {
     console.log("fetching...");
     const docSnap = await getDoc(markerRef);
-    const imagesRef = `${currentUserId}/${docSnap.data().imagesRef}`;
+    const images = `${currentUserId}/${docSnap.data().imagesRef}`;
+    console.log(docSnap.exists());
+    console.log("test: " + docSnap.data().imagesRef);
     // console.log(imagesRef);
 
     if (docSnap.exists()) {
-      listAll(ref(storage, imagesRef)).then((response) => {
+      listAll(ref(storage, images)).then((response) => {
         response.items.forEach((item) => {
           getDownloadURL(item).then((url) => {
             setImageList((prev) => [...prev, url]);

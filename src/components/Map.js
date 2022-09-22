@@ -85,10 +85,6 @@ export default function Map() {
         console.log(err);
       });
 
-    console.log("got here");
-    console.log(imageHash);
-    console.log(!checkDuplicateImages(imageHash));
-
     checkDuplicateImages(imageHash).then((result) => {
       if (result) {
         return;
@@ -109,7 +105,6 @@ export default function Map() {
           // setImageList((prev) => [...prev, url]);
 
           const { latitude: lat, longitude: long } = await exifr.gps(url);
-          renderMarkers(lat, long, markerId);
 
           // Marker error handling
           latLongErrors(lat, long);
@@ -125,23 +120,25 @@ export default function Map() {
                 street = "",
                 postal = "";
               parts.forEach((part) => {
-                if (part.types.includes("country")) {
-                  country = part.long_name;
-                }
-                if (part.types.includes("administrative_area_level_1")) {
-                  state += part.long_name;
-                }
-                if (part.types.includes("locality")) {
-                  city = part.long_name;
-                }
-                if (part.types.includes("street_number")) {
-                  street += part.long_name;
-                }
-                if (part.types.includes("route")) {
-                  street += " " + part.long_name;
-                }
-                if (part.types.includes("postal_code")) {
-                  postal += part.long_name;
+                switch (true) {
+                  case part.types.includes("country"):
+                    country = part.long_name;
+                    break;
+                  case part.types.includes("administrative_area_level_1"):
+                    state += part.long_name;
+                    break;
+                  case part.types.includes("locality"):
+                    city = part.long_name;
+                    break;
+                  case part.types.includes("street_number"):
+                    street += part.long_name;
+                    break;
+                  case part.types.includes("route"):
+                    street += " " + part.long_name;
+                    break;
+                  case part.types.includes("postal_code"):
+                    postal += part.long_name;
+                    break;
                 }
               });
 
@@ -161,6 +158,7 @@ export default function Map() {
                   },
                   { merge: false }
                 );
+                renderMarkers(lat, long, markerId);
               });
             })
             .catch((err) => console.warn("reverse geocoding fetch error"));
@@ -245,9 +243,8 @@ export default function Map() {
     if (docSnap.exists()) {
       console.log("Duplicate image not uploaded");
       return true;
-    } else {
-      return false;
     }
+    return false;
   }
 
   return (
