@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { MarkerF, InfoWindowF, InfoWindow } from "@react-google-maps/api";
+import { MarkerF, InfoWindowF } from "@react-google-maps/api";
 import { useAuth } from "../contexts/AuthContext";
 import {
   doc,
@@ -49,38 +49,28 @@ export default function MyMarker({ marker }) {
     }
   }
 
-  function handlePopupShowing(marker) {
-    if (marker.showInfo) {
-      marker.showInfo = false;
-      console.log("closing window");
-      return;
-    }
-    marker.showInfo = true;
-    console.log("opening window");
-    return;
+  function handlePopupShowing() {
+    setPopupShowing(true);
+    console.log("handlepopup");
   }
 
   return (
-    <MarkerF
-      position={markerPos}
-      onClick={(currentMarker) => handlePopupShowing(currentMarker)}
-    >
-      (
-      <InfoWindowF
-        position={markerPos}
-        onCloseclick={() => {
-          InfoWindowF.close();
-          console.log("INFOWINDOW closed");
-        }}
-      >
-        <div>
-          {imageList.map((url) => {
-            return <img key={uuidv4()} src={url} id="marker-image" />;
-          })}
-          <p>Test</p>
-        </div>
-      </InfoWindowF>
-      )
+    <MarkerF position={markerPos} onClick={handlePopupShowing}>
+      {popupShowing && (
+        <InfoWindowF
+          position={markerPos}
+          onCloseClick={() => {
+            setPopupShowing(false);
+          }}
+        >
+          <div>
+            {imageList.map((url) => {
+              return <img key={uuidv4()} src={url} id="marker-image" />;
+            })}
+            <p>Test</p>
+          </div>
+        </InfoWindowF>
+      )}
     </MarkerF>
   );
 }
