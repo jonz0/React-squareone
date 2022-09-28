@@ -20,7 +20,7 @@ import { Form, Button, Card, Alert } from "react-bootstrap";
 import exifr, { gps } from "exifr";
 import { SHA3 } from "crypto-js";
 
-const center = { lat: 48.8584, lng: 2.2945 };
+const center = { lat: 0, lng: 0 };
 const readerBuffer = new FileReader();
 
 export default function Map() {
@@ -31,7 +31,6 @@ export default function Map() {
   const { currentUser, logout } = useAuth();
   const currentUserId = currentUser.uid;
   const [error, setError] = useState("");
-
   const [imageUpload, setImageUpload] = useState(null);
   // const [imageList, setImageList] = useState([]);
 
@@ -273,10 +272,6 @@ export default function Map() {
       <Box position="absolute" right={0} top={0} h="100%" w="25%">
         <div>
           <input type="file" multiple onChange={handleFiles} />
-
-          {/* {imageList.map((url) => {
-            return <img key={uuidv4()} src={url} id="displayImg" />;
-          })} */}
         </div>
         {error && <Alert variant="danger">{error}</Alert>}
         <button onClick={handleSubmit}>Submit</button>
