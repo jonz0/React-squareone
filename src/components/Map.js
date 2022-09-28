@@ -44,7 +44,18 @@ export default function Map() {
       );
       const querySnapshot = await getDocs(markerCollectionRef);
       querySnapshot.forEach((doc) => {
-        renderMarkers(doc.data().latitude, doc.data().longitude, doc.id);
+        renderMarkers(
+          doc.data().latitude,
+          doc.data().longitude,
+          doc.id,
+          doc.data().street,
+          doc.data().city,
+          doc.data().postal,
+          doc.data().state,
+          doc.data().country,
+          doc.data().visitTime
+        );
+        // street, city, postal, state, country, visitTime
       });
     }
     fetchData();
@@ -157,7 +168,18 @@ export default function Map() {
                   },
                   { merge: false }
                 );
-                renderMarkers(lat, long, markerId);
+                renderMarkers(
+                  lat,
+                  long,
+                  markerId,
+                  street,
+                  city,
+                  postal,
+                  state,
+                  country,
+                  output.DateTimeOriginal.toUTCString()
+                );
+                // street, city, postal, state, country, visitTime
               });
             })
             .catch((err) => console.warn("reverse geocoding fetch error"));
@@ -166,25 +188,19 @@ export default function Map() {
     });
   }
 
+  /** Encodes a given image into a Base64 binary format. */
   function getBase64(file) {
     return new Promise((resolve) => {
-      let fileInfo;
       let baseURL = "";
       // Make new FileReader
       let reader = new FileReader();
-
-      // Convert the file to base64 text
+      // Convert the file to Base64 text
       reader.readAsDataURL(file);
-
-      // on reader load somthing...
+      // Returns the result of the reader on load
       reader.onload = () => {
-        // Make a fileInfo Object
-        // console.log("Called", reader);
         baseURL = reader.result;
-        // console.log(baseURL);
         resolve(baseURL);
       };
-      // console.log(fileInfo);
     });
   }
 
@@ -212,7 +228,17 @@ export default function Map() {
   }
 
   /** Adds a marker to the markers state */
-  function renderMarkers(lat, long, id) {
+  function renderMarkers(
+    lat,
+    long,
+    id,
+    street,
+    city,
+    postal,
+    state,
+    country,
+    visitTime
+  ) {
     setMarkers((prevMarkers) => {
       return [
         ...prevMarkers,
@@ -220,6 +246,12 @@ export default function Map() {
           key: id,
           latitude: parseFloat(lat),
           longitude: parseFloat(long),
+          street: street,
+          city: city,
+          state: state,
+          postal: postal,
+          country: country,
+          visitTime: visitTime,
         },
       ];
     });
@@ -258,6 +290,7 @@ export default function Map() {
         <GoogleMap
           center={center}
           zoom={1}
+          minZoom={2}
           options={{
             mapTypeId: "terrain",
             streetViewControl: false,

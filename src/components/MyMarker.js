@@ -23,6 +23,9 @@ export default function MyMarker({ marker }) {
   const markerRef = doc(db, "users", currentUserId, "markers", marker.key);
   const [imageList, setImageList] = useState([]);
   let markerPos = { lat: marker.latitude, lng: marker.longitude };
+  let country = marker.country;
+  let cityState = marker.city + ", " + marker.state;
+  let address = marker.street;
 
   useEffect(() => {
     fetchImagesRef();
@@ -68,10 +71,16 @@ export default function MyMarker({ marker }) {
         {popupShowing && (
           <InfoWindowF position={markerPos} onCloseClick={handleDelete}>
             <div>
+              <section id="marker-info">
+                <h1 id="country">
+                  <b>{country}</b>
+                </h1>
+                <p>{cityState}</p>
+                <p>{address}</p>
+              </section>
               {imageList.map((url) => {
                 return <img key={uuidv4()} src={url} id="marker-image" />;
               })}
-              <p>Test</p>
             </div>
           </InfoWindowF>
         )}

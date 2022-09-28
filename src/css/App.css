@@ -10,8 +10,18 @@
 
 #marker-image {
   width: 80px;
+  height: 80px;
+  object-fit: cover;
 }
 
 .gm-ui-hover-effect {
   display: none !important;
+}
+
+#marker-info {
+  margin-bottom: 10px;
+}
+
+#country {
+  font-size: 14pt;
 }
