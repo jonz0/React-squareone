@@ -15,7 +15,6 @@ import { ref, uploadBytes, getDownloadURL, listAll } from "firebase/storage";
 import { getDatabase, child, push, update } from "firebase/database";
 import { v4 as uuidv4 } from "uuid";
 import "../css/App.css";
-import Popup from "./Popup";
 
 export default function MyMarker({ marker }) {
   const { currentUser, logout } = useAuth();
@@ -24,7 +23,6 @@ export default function MyMarker({ marker }) {
   const markerRef = doc(db, "users", currentUserId, "markers", marker.key);
   const [imageList, setImageList] = useState([]);
   let markerPos = { lat: marker.latitude, lng: marker.longitude };
-  let [content, setContent] = useState("");
 
   useEffect(() => {
     fetchImagesRef();
@@ -37,7 +35,6 @@ export default function MyMarker({ marker }) {
     const images = `${currentUserId}/${docSnap.data().imagesRef}`;
     // console.log(docSnap.exists());
     // console.log(imagesRef);
-    setContent(docSnap.data().city + ", " + docSnap.data().country);
 
     if (docSnap.exists()) {
       listAll(ref(storage, images)).then((response) => {
@@ -59,36 +56,26 @@ export default function MyMarker({ marker }) {
       console.log("popup hidden");
     }
     setPopupShowing(!popupShowing);
-    // console.log("content: " + content);
+  }
+
+  function handleDelete() {
+    console.log("deleting marker...");
   }
 
   return (
     <>
       <MarkerF position={markerPos} onClick={handlePopupShowing}>
-        {/* {popupShowing && (
-        <InfoWindowF
-          position={markerPos}
-          onCloseClick={() => {
-            setPopupShowing(false);
-          }}
-        >
-          <div>
-            {imageList.map((url) => {
-              return <img key={uuidv4()} src={url} id="marker-image" />;
-            })}
-            <p>Test</p>
-          </div>
-        </InfoWindowF>
-      )} */}
+        {popupShowing && (
+          <InfoWindowF position={markerPos} onCloseClick={handleDelete}>
+            <div>
+              {imageList.map((url) => {
+                return <img key={uuidv4()} src={url} id="marker-image" />;
+              })}
+              <p>Test</p>
+            </div>
+          </InfoWindowF>
+        )}
       </MarkerF>
-      {popupShowing && (
-        <Popup
-          anchorPosition={{ lat: markerPos.lat, lng: markerPos.lng }}
-          markerPixelOffset={{ x: 0, y: -45 }}
-          // content={content}
-          content={content}
-        />
-      )}
     </>
   );
 }

@@ -11,3 +11,7 @@
 #marker-image {
   width: 80px;
 }
+
+.gm-ui-hover-effect {
+  display: none !important;
+}
