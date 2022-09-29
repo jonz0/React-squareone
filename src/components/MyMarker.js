@@ -53,11 +53,11 @@ export default function MyMarker({ marker }) {
   }
 
   async function handlePopupShowing() {
-    if (popupShowing) {
-      console.log("popup showing");
-    } else {
-      console.log("popup hidden");
-    }
+    // if (popupShowing) {
+    //   console.log("popup showing");
+    // } else {
+    //   console.log("popup hidden");
+    // }
     setPopupShowing(!popupShowing);
   }
 

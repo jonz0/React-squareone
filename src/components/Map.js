@@ -11,6 +11,8 @@ import {
   where,
   getDocs,
   getDoc,
+  orderBy,
+  limit,
 } from "firebase/firestore";
 import { useAuth } from "../contexts/AuthContext";
 import { storage, db, auth, newPostKey } from "../firebase";
@@ -19,9 +21,7 @@ import { getDatabase, child, push, update } from "firebase/database";
 import { Form, Button, Card, Alert } from "react-bootstrap";
 import exifr, { gps } from "exifr";
 import { SHA3 } from "crypto-js";
-
 const center = { lat: 0, lng: 0 };
-const readerBuffer = new FileReader();
 
 export default function Map() {
   const [markers, setMarkers] = useState([]);
@@ -32,17 +32,12 @@ export default function Map() {
   const currentUserId = currentUser.uid;
   const [error, setError] = useState("");
   const [imageUpload, setImageUpload] = useState(null);
-  const visits = useRef([]);
+  const [visits, setVisits] = useState([]);
+  const markerCollectionRef = collection(db, "users", currentUserId, "markers");
   // const [imageList, setImageList] = useState([]);
 
   useEffect(() => {
     async function fetchData() {
-      const markerCollectionRef = collection(
-        db,
-        "users",
-        currentUserId,
-        "markers"
-      );
       const querySnapshot = await getDocs(markerCollectionRef);
       querySnapshot.forEach((doc) => {
         renderMarkers(
@@ -100,7 +95,7 @@ export default function Map() {
       if (result) {
         return;
       }
-      console.log("No duplicates");
+      // console.log("No duplicates");
       setDoc(doc(imageHashes, imageHash), { exists: true }, { merge: false });
 
       const imageName = `${currentUserId}/${markerId}-images/${imageHash}`;
@@ -150,7 +145,7 @@ export default function Map() {
                 }
               });
 
-              exifr.parse(url).then((output) => {
+              exifr.parse(url).then(async (output) => {
                 setDoc(
                   markerRef,
                   {
@@ -178,19 +173,20 @@ export default function Map() {
                   output.DateTimeOriginal.toUTCString()
                 );
 
-                console.log("output 1: " + output);
-                console.log(
-                  "output 2: " + output.DateTimeOriginal.toUTCString()
-                );
-                visits = visits.current.push([
-                  output.DateTimeOriginal.toUTCString(),
-                  markerId,
-                ]);
+                queryVisits();
               });
             })
             .catch((err) => console.warn("reverse geocoding fetch error"));
         });
       });
+    });
+  }
+
+  async function queryVisits() {
+    const q = query(markerCollectionRef, orderBy("visitTime"));
+    const querySnapshot = await getDocs(q);
+    querySnapshot.forEach((doc) => {
+      console.log(doc.data().latitude);
     });
   }
 
@@ -231,27 +227,6 @@ export default function Map() {
     // querySnapshot.forEach((doc) => {
     //   console.log(doc.data().latitude);
     // });
-
-    // console.log("visits length: " + visits.current.length);
-    // visits.current.forEach((visit) => {
-    //   console.log(visit[0] + ", " + visit[1]);
-    // });
-
-    async function fetchDebug() {
-      const markerDocRef = doc(
-        db,
-        "users",
-        currentUserId,
-        "markers",
-        "f715f922-dca3-4834-b80a-a1ecaa20cfdd"
-      );
-      const docSnap = await getDoc(markerDocRef);
-      docSnap.data().forEach((doc) => {
-        console.log(doc);
-        // street, city, postal, state, country, visitTime
-      });
-    }
-    fetchDebug();
   }
 
   /** Adds a marker to the markers state */
