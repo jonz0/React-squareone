@@ -32,6 +32,7 @@ export default function Map() {
   const currentUserId = currentUser.uid;
   const [error, setError] = useState("");
   const [imageUpload, setImageUpload] = useState(null);
+  const visits = useRef([]);
   // const [imageList, setImageList] = useState([]);
 
   useEffect(() => {
@@ -112,11 +113,8 @@ export default function Map() {
        */
       uploadBytes(imageRef, imageUpload).then((snapshot) => {
         getDownloadURL(snapshot.ref).then(async (url) => {
-          // setImageList((prev) => [...prev, url]);
-
-          const { latitude: lat, longitude: long } = await exifr.gps(url);
-
           // Marker error handling
+          const { latitude: lat, longitude: long } = await exifr.gps(url);
           latLongErrors(lat, long);
 
           let reverseGeoUrl = `https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${long}&key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}`;
@@ -179,7 +177,15 @@ export default function Map() {
                   country,
                   output.DateTimeOriginal.toUTCString()
                 );
-                // street, city, postal, state, country, visitTime
+
+                console.log("output 1: " + output);
+                console.log(
+                  "output 2: " + output.DateTimeOriginal.toUTCString()
+                );
+                visits = visits.current.push([
+                  output.DateTimeOriginal.toUTCString(),
+                  markerId,
+                ]);
               });
             })
             .catch((err) => console.warn("reverse geocoding fetch error"));
@@ -213,18 +219,39 @@ export default function Map() {
   }
 
   /** Debug button (remove on production) */
-  async function debug() {
-    console.log(currentUserId);
-    const markerCollectionRef = collection(
-      db,
-      "users",
-      currentUserId,
-      "markers"
-    );
-    const querySnapshot = await getDocs(markerCollectionRef);
-    querySnapshot.forEach((doc) => {
-      console.log(doc.data().latitude);
-    });
+  function debug() {
+    // console.log(currentUserId);
+    // const markerCollectionRef = collection(
+    //   db,
+    //   "users",
+    //   currentUserId,
+    //   "markers"
+    // );
+    // const querySnapshot = await getDocs(markerCollectionRef);
+    // querySnapshot.forEach((doc) => {
+    //   console.log(doc.data().latitude);
+    // });
+
+    // console.log("visits length: " + visits.current.length);
+    // visits.current.forEach((visit) => {
+    //   console.log(visit[0] + ", " + visit[1]);
+    // });
+
+    async function fetchDebug() {
+      const markerDocRef = doc(
+        db,
+        "users",
+        currentUserId,
+        "markers",
+        "f715f922-dca3-4834-b80a-a1ecaa20cfdd"
+      );
+      const docSnap = await getDoc(markerDocRef);
+      docSnap.data().forEach((doc) => {
+        console.log(doc);
+        // street, city, postal, state, country, visitTime
+      });
+    }
+    fetchDebug();
   }
 
   /** Adds a marker to the markers state */

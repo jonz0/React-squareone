@@ -33,7 +33,7 @@ export default function MyMarker({ marker }) {
 
   async function fetchImagesRef() {
     // console.log("fetching...");
-    console.log("marker position: " + markerPos.lat + ", " + markerPos.lng);
+    // console.log("marker position: " + markerPos.lat + ", " + markerPos.lng);
     const docSnap = await getDoc(markerRef);
     const images = `${currentUserId}/${docSnap.data().imagesRef}`;
     // console.log(docSnap.exists());
