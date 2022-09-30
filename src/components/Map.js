@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Box, BreadcrumbLink, Flex, Input } from "@chakra-ui/react";
+// import { Box, BreadcrumbLink, Flex, Input } from "@chakra-ui/react";
 import { useJsApiLoader, GoogleMap, Polyline } from "@react-google-maps/api";
 import MarkerList from "./MarkerList";
 import { v4 as uuidv4 } from "uuid";
@@ -291,14 +291,46 @@ export default function Map() {
   ];
 
   return (
-    <Flex
-      position="relative"
-      flexDirection="column"
-      alignItems="center"
-      h="100vh"
-      w="100vw"
-    >
-      <Box position="absolute" left={0} top={0} h="100%" w="75%">
+    <div id="app-container">
+      <div id="menu-container">
+        <h1 id="header-1">EXIF Mapper</h1>
+        <div class="mb-3">
+          <label for="formFile" class="form-label">
+            Wagwan, fam! 🇨🇦
+            <br />
+            <br /> This mapper tool reads EXIF data from uploaded images and
+            maps them using Google Maps. Your journeys are chronologically
+            mapped between the locations at which each image was taken.
+            <br />
+            <br />
+            Drop your images here and let's run a 1-2 EXIF Mapper, eh?
+          </label>
+          <hr />
+          <input
+            class="form-control"
+            type="file"
+            id="formFile"
+            multiple
+            onChange={handleFiles}
+          />
+        </div>
+
+        {error && <Alert variant="danger">{error}</Alert>}
+        <duv id="buttons">
+          <button
+            type="button"
+            onClick={handleSubmit}
+            class="btn btn-primary"
+            id="submit-button"
+          >
+            Submit
+          </button>
+          <button onClick={debug} id="debug-button" class="btn btn-danger">
+            Debug
+          </button>
+        </duv>
+      </div>
+      <div id="map-container">
         <GoogleMap
           zoom={1}
           // minZoom={4}
@@ -323,7 +355,7 @@ export default function Map() {
           center={{ lat: 0, lng: 0 }}
         >
           <MarkerList markers={markers} key={uuidv4()} />
-          <Polyline
+          {/* <Polyline
             path={pathCoordinates}
             geodesic={true}
             options={{
@@ -331,19 +363,9 @@ export default function Map() {
               strokeOpacity: 0.75,
               strokeWeight: 2,
             }}
-          />
+          /> */}
         </GoogleMap>
-      </Box>
-
-      <Box position="absolute" right={0} top={0} h="100%" w="25%">
-        <div>
-          <input type="file" multiple onChange={handleFiles} />
-        </div>
-        {error && <Alert variant="danger">{error}</Alert>}
-        <button onClick={handleSubmit}>Submit</button>
-        <br />
-        <button onClick={debug}>Debug</button>
-      </Box>
-    </Flex>
+      </div>
+    </div>
   );
 }
