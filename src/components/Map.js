@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useRef } from "react";
 import { Box, Flex, Input } from "@chakra-ui/react";
-import { useJsApiLoader, GoogleMap } from "@react-google-maps/api";
+import { useJsApiLoader, GoogleMap, Polyline } from "@react-google-maps/api";
 import MarkerList from "./MarkerList";
 import { v4 as uuidv4 } from "uuid";
 import {
@@ -280,6 +280,11 @@ export default function Map() {
     return false;
   }
 
+  const pathCoordinates = [
+    { lat: 36.05298765935, lng: -112.083756616339 },
+    { lat: 36.2169884797185, lng: 0 },
+  ];
+
   return (
     <Flex
       position="relative"
@@ -301,6 +306,15 @@ export default function Map() {
           mapContainerStyle={{ width: "100%", height: "100%" }}
         >
           <MarkerList markers={markers} key={uuidv4()} />
+          <Polyline
+            path={pathCoordinates}
+            geodesic={true}
+            options={{
+              strokeColor: "#ff2527",
+              strokeOpacity: 0.75,
+              strokeWeight: 2,
+            }}
+          />
         </GoogleMap>
       </Box>
 
