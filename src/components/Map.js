@@ -24,6 +24,7 @@ import { SHA3 } from "crypto-js";
 import { retroStyle } from "../styles/Retro";
 import { auburgineStyle } from "../styles/Auburgine";
 import { eyesBurningStyle } from "../styles/EyesBurning";
+import PolylineList from "./PolylineList";
 
 export default function Map() {
   const [markers, setMarkers] = useState([]);
@@ -38,6 +39,7 @@ export default function Map() {
   const markerCollectionRef = collection(db, "users", currentUserId, "markers");
   // const [imageList, setImageList] = useState([]);
   const latLongs = [];
+  const [dict, setDict] = useState({});
 
   useEffect(() => {
     async function fetchData() {
@@ -178,6 +180,11 @@ export default function Map() {
                   country,
                   output.DateTimeOriginal.toUTCString()
                 );
+
+                // Adds data for the uploaded image to the image time-marker dictionary.
+                let tempDict = dict;
+                tempDict[output.DateTimeOriginal.toUTCString()] = markerId;
+                setDict(tempDict);
               });
             })
             .catch((err) => console.warn("reverse geocoding fetch error"));
@@ -294,8 +301,8 @@ export default function Map() {
     <div id="app-container">
       <div id="menu-container">
         <h1 id="header-1">EXIF Mapper</h1>
-        <div class="mb-3">
-          <label for="formFile" class="form-label">
+        <div className="mb-3">
+          <label format="formFile" className="form-label">
             Wagwan, fam! 🇨🇦
             <br />
             <br /> This mapper tool reads EXIF data from uploaded images and
@@ -307,7 +314,7 @@ export default function Map() {
           </label>
           <hr />
           <input
-            class="form-control"
+            className="form-control"
             type="file"
             id="formFile"
             multiple
@@ -316,19 +323,19 @@ export default function Map() {
         </div>
 
         {error && <Alert variant="danger">{error}</Alert>}
-        <duv id="buttons">
+        <div className="buttons">
           <button
             type="button"
             onClick={handleSubmit}
-            class="btn btn-primary"
+            className="btn btn-primary"
             id="submit-button"
           >
             Submit
           </button>
-          <button onClick={debug} id="debug-button" class="btn btn-danger">
+          <button onClick={debug} id="debug-button" className="btn btn-danger">
             Debug
           </button>
-        </duv>
+        </div>
       </div>
       <div id="map-container">
         <GoogleMap
@@ -354,7 +361,8 @@ export default function Map() {
           mapContainerStyle={{ width: "100%", height: "100%" }}
           center={{ lat: 0, lng: 0 }}
         >
-          <MarkerList markers={markers} key={uuidv4()} />
+          <MarkerList markers={markers} />
+          {/* <PolylineList markers={markers} key={uuidv4()} /> */}
           {/* <Polyline
             path={pathCoordinates}
             geodesic={true}
