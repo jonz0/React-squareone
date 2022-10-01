@@ -25,8 +25,6 @@ import { retroStyle } from "../styles/Retro";
 import { auburgineStyle } from "../styles/Auburgine";
 import { eyesBurningStyle } from "../styles/EyesBurning";
 
-const center = { lat: 0, lng: 0 };
-
 export default function Map() {
   const [markers, setMarkers] = useState([]);
   const [lines, setLines] = useState([]);
@@ -302,16 +300,27 @@ export default function Map() {
     >
       <Box position="absolute" left={0} top={0} h="100%" w="75%">
         <GoogleMap
-          center={center}
           zoom={1}
-          minZoom={2}
+          // minZoom={4}
           options={{
             mapTypeId: "terrain",
             streetViewControl: false,
             mapTypeControl: false,
             styles: retroStyle,
+            minZoom: 2,
+            restriction: {
+              latLngBounds: {
+                north: 85,
+                south: -85,
+                west: -180,
+                east: 180,
+              },
+              strictBounds: false,
+            },
+            // draggable: false,
           }}
           mapContainerStyle={{ width: "100%", height: "100%" }}
+          center={{ lat: 0, lng: 0 }}
         >
           <MarkerList markers={markers} key={uuidv4()} />
           <Polyline
