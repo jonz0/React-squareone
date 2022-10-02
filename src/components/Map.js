@@ -185,12 +185,51 @@ export default function Map() {
                 let tempDict = dict;
                 tempDict[output.DateTimeOriginal.toUTCString()] = markerId;
                 setDict(tempDict);
+                handlePolylines();
               });
             })
             .catch((err) => console.warn("reverse geocoding fetch error"));
         });
       });
     });
+  }
+
+  async function handlePolylines() {
+    if (Object.keys(dict).length < 2) {
+      console.log("There are only " + Object.keys(dict).length + " markers.");
+      return;
+    }
+
+    // dict.sort();
+    let tempMarkerId;
+    console.log(Object.values(dict)[0]);
+
+    for (let i = 0; i < Object.keys(dict).length - 1; i++) {
+      tempMarkerId = Object.values(dict)[i];
+      let nextMarkerId = Object.values(dict)[i + 1];
+      const firstMarkerRef = doc(
+        db,
+        "users",
+        currentUserId,
+        "markers",
+        tempMarkerId
+      );
+      const firstSnapshot = await getDoc(firstMarkerRef);
+      const nextMarkerRef = doc(
+        db,
+        "users",
+        currentUserId,
+        "markers",
+        nextMarkerId
+      );
+      const nextSnapshot = await getDoc(nextMarkerRef);
+      const lat1 = firstSnapshot.data().latitude;
+      const long1 = firstSnapshot.data().longitude;
+      const lat2 = nextSnapshot.data().latitude;
+      const long2 = nextSnapshot.data().longitude;
+      console.log("coordinates: " + lat1 + ", " + long1);
+      console.log("coordinates: " + lat2 + ", " + long2);
+    }
   }
 
   async function loadCoordinates() {
