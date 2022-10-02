@@ -164,7 +164,8 @@ export default function Map() {
                     state: state,
                     country: country,
                     postal: postal,
-                    visitTime: output.DateTimeOriginal.toUTCString(),
+                    visitTime: output.DateTimeOriginal.getTime(),
+                    // visitTime: output.DateTimeOriginal.toUTCString(),
                     imagesRef: markerName + "-images/",
                   },
                   { merge: false }
@@ -178,12 +179,14 @@ export default function Map() {
                   postal,
                   state,
                   country,
-                  output.DateTimeOriginal.toUTCString()
+                  output.DateTimeOriginal.getTime()
+                  // output.DateTimeOriginal.toUTCString()
                 );
 
                 // Adds data for the uploaded image to the image time-marker dictionary.
                 let tempDict = dict;
-                tempDict[output.DateTimeOriginal.toUTCString()] = markerId;
+                // tempDict[output.DateTimeOriginal.toUTCString()] = markerId;
+                tempDict[output.DateTimeOriginal.getTime()] = markerId;
                 setDict(tempDict);
                 handlePolylines();
               });
@@ -200,7 +203,20 @@ export default function Map() {
       return;
     }
 
-    // dict.sort();
+    // console.log(Object.keys(dict).sort());
+
+    const sorted = Object.keys(dict)
+      .sort()
+      .reduce((accumulator, key) => {
+        accumulator[key] = dict[key];
+
+        return accumulator;
+      }, {});
+
+    Object.keys(sorted).forEach((key) => {
+      console.log("logging: " + key, sorted[key]); // 👉️ a one, b two, z three
+    });
+
     let tempMarkerId;
     console.log(Object.values(dict)[0]);
 
