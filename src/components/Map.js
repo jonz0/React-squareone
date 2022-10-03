@@ -121,6 +121,8 @@ export default function Map() {
           fetch(reverseGeoUrl)
             .then((response) => response.json())
             .then((data) => {
+              console.log("data");
+              console.log(data);
               let parts = data.results[0].address_components;
               let city = "",
                 state = "",
@@ -170,6 +172,8 @@ export default function Map() {
                   },
                   { merge: false }
                 );
+                console.log("start");
+                console.log(markers);
                 renderMarkers(
                   lat,
                   long,
@@ -182,12 +186,15 @@ export default function Map() {
                   output.DateTimeOriginal.getTime()
                   // output.DateTimeOriginal.toUTCString()
                 );
-
+                console.log(markers);
                 // Adds data for the uploaded image to the image time-marker dictionary.
                 let tempDict = dict;
                 // tempDict[output.DateTimeOriginal.toUTCString()] = markerId;
                 tempDict[output.DateTimeOriginal.getTime()] = markerId;
-                setDict(tempDict);
+                setDict((oldDict) => {
+                  return tempDict;
+                });
+                console.log(dict);
                 handlePolylines();
               });
             })
@@ -296,6 +303,16 @@ export default function Map() {
     // });
   }
 
+  function compareMarkersByVisitTime(a, b) {
+    if (a["visitTime"] < b["visitTime"]) {
+      return -1;
+    }
+    if (a["visitTime"] < b["visitTime"]) {
+      return 1;
+    }
+    return 0;
+  }
+
   /** Adds a marker to the markers state */
   function renderMarkers(
     lat,
@@ -310,7 +327,7 @@ export default function Map() {
   ) {
     setMarkers((prevMarkers) => {
       return [
-        ...prevMarkers,
+        // ...prevMarkers,
         {
           key: id,
           latitude: parseFloat(lat),
