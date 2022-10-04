@@ -81,8 +81,8 @@ export default function MyMarker({ marker }) {
       .catch((error) => {
         console.log("Uh-oh, an error occurred!");
       });
-    const hash = `${currentUserId}/imageHashes/${docSnap.data().hash}`;
-    const imageRef = doc(db, "users", hash);
+    const hashRef = `${currentUserId}/imageHashes/${docSnap.data().hash}`;
+    const imageRef = doc(db, "users", hashRef);
     await deleteDoc(markerRef);
     await deleteDoc(imageRef);
   }
