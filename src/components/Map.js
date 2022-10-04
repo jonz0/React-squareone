@@ -84,7 +84,7 @@ export default function Map() {
     const markerId = uuidv4();
     const markerName = `${markerId}`;
     const markerRef = doc(db, "users", currentUserId, "markers", markerName);
-    const imageHashes = collection(db, "users", currentUserId, "imageRefs");
+    const imageHashes = collection(db, "users", currentUserId, "imageHashes");
     let imageHash = "";
 
     await getBase64(imageUpload)
@@ -121,8 +121,6 @@ export default function Map() {
           fetch(reverseGeoUrl)
             .then((response) => response.json())
             .then((data) => {
-              console.log("data");
-              console.log(data);
               let parts = data.results[0].address_components;
               let city = "",
                 state = "",
@@ -168,12 +166,11 @@ export default function Map() {
                     postal: postal,
                     visitTime: output.DateTimeOriginal.getTime(),
                     // visitTime: output.DateTimeOriginal.toUTCString(),
-                    imagesRef: markerName + "-images/",
+                    imagesRef: markerName + "-images",
+                    hash: imageHash,
                   },
                   { merge: false }
                 );
-                console.log("start");
-                console.log(markers);
                 renderMarkers(
                   lat,
                   long,
@@ -186,15 +183,12 @@ export default function Map() {
                   output.DateTimeOriginal.getTime()
                   // output.DateTimeOriginal.toUTCString()
                 );
-                console.log(markers);
+
                 // Adds data for the uploaded image to the image time-marker dictionary.
                 let tempDict = dict;
                 // tempDict[output.DateTimeOriginal.toUTCString()] = markerId;
                 tempDict[output.DateTimeOriginal.getTime()] = markerId;
-                setDict((oldDict) => {
-                  return tempDict;
-                });
-                console.log(dict);
+                setDict(tempDict);
                 handlePolylines();
               });
             })
@@ -303,16 +297,6 @@ export default function Map() {
     // });
   }
 
-  function compareMarkersByVisitTime(a, b) {
-    if (a["visitTime"] < b["visitTime"]) {
-      return -1;
-    }
-    if (a["visitTime"] < b["visitTime"]) {
-      return 1;
-    }
-    return 0;
-  }
-
   /** Adds a marker to the markers state */
   function renderMarkers(
     lat,
@@ -327,7 +311,7 @@ export default function Map() {
   ) {
     setMarkers((prevMarkers) => {
       return [
-        // ...prevMarkers,
+        ...prevMarkers,
         {
           key: id,
           latitude: parseFloat(lat),
@@ -363,11 +347,6 @@ export default function Map() {
     }
     return false;
   }
-
-  const pathCoordinates = [
-    { lat: 36.05298765935, lng: -112.083756616339 },
-    { lat: 36.2169884797185, lng: 0 },
-  ];
 
   return (
     <div id="app-container">

@@ -9,9 +9,16 @@ import {
   where,
   getDocs,
   getDoc,
+  deleteDoc,
 } from "firebase/firestore";
 import { storage, db, auth, newPostKey } from "../firebase";
-import { ref, uploadBytes, getDownloadURL, listAll } from "firebase/storage";
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+  listAll,
+  deleteObject,
+} from "firebase/storage";
 import { getDatabase, child, push, update } from "firebase/database";
 import { v4 as uuidv4 } from "uuid";
 import "../css/App.css";
@@ -20,7 +27,7 @@ export default function MyMarker({ marker }) {
   const { currentUser, logout } = useAuth();
   const [popupShowing, setPopupShowing] = useState(false);
   const currentUserId = currentUser.uid;
-  const markerRef = doc(db, "users", currentUserId, "markers", marker.key);
+  let markerRef = doc(db, "users", currentUserId, "markers", marker.key);
   const [imageList, setImageList] = useState([]);
   let markerPos = { lat: marker.latitude, lng: marker.longitude };
   let country = marker.country;
@@ -35,7 +42,7 @@ export default function MyMarker({ marker }) {
     // console.log("fetching...");
     // console.log("marker position: " + markerPos.lat + ", " + markerPos.lng);
     const docSnap = await getDoc(markerRef);
-    const images = `${currentUserId}/${docSnap.data().imagesRef}`;
+    const images = `${currentUserId}/${docSnap.data().imagesRef}/`;
     // console.log(docSnap.exists());
     // console.log(imagesRef);
 
@@ -61,15 +68,30 @@ export default function MyMarker({ marker }) {
     setPopupShowing(!popupShowing);
   }
 
-  function handleDelete() {
-    console.log("deleting marker...");
+  async function handleDelete() {
+    markerRef = doc(db, "users", currentUserId, "markers", marker.key);
+    const docSnap = await getDoc(markerRef);
+    const images = `${currentUserId}/${docSnap.data().imagesRef}/${
+      docSnap.data().hash
+    }`;
+    deleteObject(ref(storage, images))
+      .then(() => {
+        console.log("File deleted successfully");
+      })
+      .catch((error) => {
+        console.log("Uh-oh, an error occurred!");
+      });
+    const hash = `${currentUserId}/imageHashes/${docSnap.data().hash}`;
+    const imageRef = doc(db, "users", hash);
+    await deleteDoc(markerRef);
+    await deleteDoc(imageRef);
   }
 
   return (
     <>
       <MarkerF position={markerPos} onClick={handlePopupShowing}>
         {popupShowing && (
-          <InfoWindowF position={markerPos} onCloseClick={handleDelete}>
+          <InfoWindowF position={markerPos}>
             <div>
               <section id="marker-info">
                 <h1 id="country">
@@ -81,6 +103,14 @@ export default function MyMarker({ marker }) {
               {imageList.map((url) => {
                 return <img key={uuidv4()} src={url} id="marker-image" />;
               })}
+              <button
+                type="button"
+                onClick={handleDelete}
+                className="btn btn-danger"
+                id="delete-marker"
+              >
+                Delete
+              </button>
             </div>
           </InfoWindowF>
         )}

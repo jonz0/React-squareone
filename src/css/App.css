@@ -28,6 +28,10 @@
   font-size: 14pt;
 }
 
+#delete-marker {
+  margin-top: 10px
+}
+
 /* .google-maps {
   position: relative;
   padding-bottom: 75%;
