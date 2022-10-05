@@ -23,7 +23,7 @@ import { getDatabase, child, push, update } from "firebase/database";
 import { v4 as uuidv4 } from "uuid";
 import "../css/App.css";
 
-export default function MyMarker({ marker }) {
+export default function MyMarker({ marker }, { deleteMarker }) {
   const { currentUser, logout } = useAuth();
   const [popupShowing, setPopupShowing] = useState(false);
   const currentUserId = currentUser.uid;

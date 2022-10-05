@@ -6,7 +6,7 @@ export default function MarkerList({ markers }) {
   /* Needs to get deleted marker ID passed to it, then remove the correct marker from markers before mapping */
   function deleteMarker() {}
 
-  return markers.map((marker) => {
+  return Object.values(markers).map((marker) => {
     return <MyMarker key={uuidv4()} marker={marker} />;
   });
 }
