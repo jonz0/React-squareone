@@ -33,6 +33,7 @@ export default function MyMarker({ marker }) {
   let country = marker.country;
   let cityState = marker.city + ", " + marker.state;
   let address = marker.street;
+  let markerShowing = false;
 
   useEffect(() => {
     fetchImagesRef();
