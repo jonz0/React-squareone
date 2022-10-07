@@ -23,7 +23,7 @@ import { getDatabase, child, push, update } from "firebase/database";
 import { v4 as uuidv4 } from "uuid";
 import "../css/App.css";
 
-export default function MyMarker({ marker, deleteMarker }) {
+export default function MyMarker({ marker, deleteMarker, handleDelete }) {
   const { currentUser, logout } = useAuth();
   const [popupShowing, setPopupShowing] = useState(false);
   const currentUserId = currentUser.uid;
@@ -69,24 +69,24 @@ export default function MyMarker({ marker, deleteMarker }) {
     setPopupShowing(!popupShowing);
   }
 
-  async function handleDelete() {
-    markerRef = doc(db, "users", currentUserId, "markers", marker.key);
-    const docSnap = await getDoc(markerRef);
-    const images = `${currentUserId}/${docSnap.data().imagesRef}/${
-      docSnap.data().hash
-    }`;
-    deleteObject(ref(storage, images))
-      .then(() => {
-        console.log("File deleted successfully");
-      })
-      .catch((error) => {
-        console.log("Uh-oh, an error occurred!");
-      });
-    const hashRef = `${currentUserId}/imageHashes/${docSnap.data().hash}`;
-    const imageRef = doc(db, "users", hashRef);
-    await deleteDoc(markerRef);
-    await deleteDoc(imageRef);
-  }
+  // async function handleDelete() {
+  //   markerRef = doc(db, "users", currentUserId, "markers", marker.key);
+  //   const docSnap = await getDoc(markerRef);
+  //   const images = `${currentUserId}/${docSnap.data().imagesRef}/${
+  //     docSnap.data().hash
+  //   }`;
+  //   deleteObject(ref(storage, images))
+  //     .then(() => {
+  //       console.log("File deleted successfully");
+  //     })
+  //     .catch((error) => {
+  //       console.log("Uh-oh, an error occurred!");
+  //     });
+  //   const hashRef = `${currentUserId}/imageHashes/${docSnap.data().hash}`;
+  //   const imageRef = doc(db, "users", hashRef);
+  //   await deleteDoc(markerRef);
+  //   await deleteDoc(imageRef);
+  // }
 
   return (
     <>
@@ -107,8 +107,8 @@ export default function MyMarker({ marker, deleteMarker }) {
               <button
                 type="button"
                 onClick={() => {
-                  handleDelete();
-                  deleteMarker(marker.id);
+                  handleDelete(marker.key);
+                  deleteMarker(marker.key);
                 }}
                 className="btn btn-danger"
                 id="delete-marker"
