@@ -24,11 +24,11 @@ import { v4 as uuidv4 } from "uuid";
 import "../css/App.css";
 import MyMarker from "./MyMarker";
 
-export default function MarkerList({ markers }) {
+export default function MarkerList({ markers, renderMarkers }) {
   const { currentUser, logout } = useAuth();
   const currentUserId = currentUser.uid;
-  /* Needs to get deleted marker ID passed to it, then remove the correct marker from markers before mapping */
 
+  /* Needs to get deleted marker ID passed to it, then remove the correct marker from markers before mapping */
   async function handleDelete(id) {
     const markerRef = doc(db, "users", currentUserId, "markers", id);
     const docSnap = await getDoc(markerRef);
@@ -46,6 +46,7 @@ export default function MarkerList({ markers }) {
     const imageRef = doc(db, "users", hashRef);
     await deleteDoc(markerRef);
     await deleteDoc(imageRef);
+    renderMarkers();
   }
 
   return Object.values(markers).map((marker) => {
