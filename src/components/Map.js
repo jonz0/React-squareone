@@ -38,8 +38,6 @@ export default function Map() {
   const [error, setError] = useState("");
   const [imageUpload, setImageUpload] = useState(null);
   const markerCollectionRef = collection(db, "users", currentUserId, "markers");
-  // const [imageList, setImageList] = useState([]);
-  const latLongs = [];
   const [dict, setDict] = useState({});
 
   useEffect(() => {
@@ -63,6 +61,27 @@ export default function Map() {
     }
     fetchData();
   }, []);
+
+  async function renderMarkers() {
+    const querySnapshot = await getDocs(markerCollectionRef);
+    let temp = {};
+    querySnapshot.forEach((doc) => {
+      temp[doc.id] = {
+        key: doc.id,
+        latitude: doc.data().latitude,
+        longitude: doc.data().longitude,
+        street: doc.data().street,
+        city: doc.data().city,
+        state: doc.data().state,
+        postal: doc.data().postal,
+        country: doc.data().country,
+        visitTime: doc.data().visitTime,
+      };
+      console.log(doc.id);
+    });
+    console.log(temp);
+    setMarkers(temp);
+  }
 
   if (!isLoaded) {
     return "Loading";
@@ -172,21 +191,6 @@ export default function Map() {
                   },
                   { merge: false }
                 );
-                let tempA = { ...markers };
-                tempA[markerId] = {
-                  key: markerId,
-                  latitude: lat,
-                  longitude: long,
-                  street: street,
-                  city: city,
-                  state: state,
-                  postal: postal,
-                  country: country,
-                  visitTime: output.DateTimeOriginal.getTime(),
-                };
-                setMarkers(tempA);
-                console.log("rendering...");
-                console.log(markers);
 
                 // Adds data for the uploaded image to the image time-marker dictionary.
                 let tempDict = dict;
@@ -283,7 +287,8 @@ export default function Map() {
     await imageUpload.forEach((file) => {
       handleAddMarker(file);
     });
-    loadCoordinates();
+    // loadCoordinates();
+    renderMarkers();
   }
 
   /** Debug button (remove on production) */

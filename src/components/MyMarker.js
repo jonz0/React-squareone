@@ -108,7 +108,6 @@ export default function MyMarker({ marker, deleteMarker, handleDelete }) {
                 type="button"
                 onClick={() => {
                   handleDelete(marker.key);
-                  deleteMarker(marker.key);
                 }}
                 className="btn btn-danger"
                 id="delete-marker"
