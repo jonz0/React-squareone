@@ -23,7 +23,7 @@ import { getDatabase, child, push, update } from "firebase/database";
 import { v4 as uuidv4 } from "uuid";
 import "../css/App.css";
 
-export default function MyMarker({ marker, handleDelete }) {
+export default function MyMarker({ marker, deleteMarker }) {
   const { currentUser, logout } = useAuth();
   const [popupShowing, setPopupShowing] = useState(false);
   const currentUserId = currentUser.uid;
@@ -69,6 +69,7 @@ export default function MyMarker({ marker, handleDelete }) {
   }
 
   async function handleDelete() {
+    deleteMarker(marker.key);
     markerRef = doc(db, "users", currentUserId, "markers", marker.key);
     const docSnap = await getDoc(markerRef);
     const images = `${currentUserId}/${docSnap.data().imagesRef}/${
@@ -105,9 +106,7 @@ export default function MyMarker({ marker, handleDelete }) {
               })}
               <button
                 type="button"
-                onClick={() => {
-                  handleDelete(marker.key);
-                }}
+                onClick={handleDelete}
                 className="btn btn-danger"
                 id="delete-marker"
               >

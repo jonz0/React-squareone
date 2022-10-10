@@ -27,7 +27,7 @@ import { eyesBurningStyle } from "../styles/EyesBurning";
 import PolylineList from "./PolylineList";
 
 export default function Map() {
-  const [markers, setMarkers] = useState({});
+  const [markers, setMarkers] = useState([]);
   const [lines, setLines] = useState([]);
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
@@ -37,37 +37,30 @@ export default function Map() {
   const [error, setError] = useState("");
   const [imageUpload, setImageUpload] = useState(null);
   const markerCollectionRef = collection(db, "users", currentUserId, "markers");
+  // const [imageList, setImageList] = useState([]);
+  const latLongs = [];
   const [dict, setDict] = useState({});
 
   useEffect(() => {
-    console.log("running useEffect");
     async function fetchData() {
       const querySnapshot = await getDocs(markerCollectionRef);
-      let temp = { ...markers };
       querySnapshot.forEach((doc) => {
-        temp[doc.id] = {
-          key: doc.id,
-          latitude: doc.data().latitude,
-          longitude: doc.data().longitude,
-          street: doc.data().street,
-          city: doc.data().city,
-          state: doc.data().state,
-          postal: doc.data().postal,
-          country: doc.data().country,
-          visitTime: doc.data().visitTime,
-        };
-        setMarkers(temp);
+        renderMarkers(
+          doc.data().latitude,
+          doc.data().longitude,
+          doc.id,
+          doc.data().street,
+          doc.data().city,
+          doc.data().postal,
+          doc.data().state,
+          doc.data().country,
+          doc.data().visitTime
+        );
+        // street, city, postal, state, country, visitTime
       });
     }
     fetchData();
   }, []);
-
-  function deleteMarker(id) {
-    let temp = { ...markers };
-    console.log(temp);
-    delete temp["0"];
-    console.log(temp);
-  }
 
   if (!isLoaded) {
     return "Loading";
@@ -93,7 +86,6 @@ export default function Map() {
     const markerRef = doc(db, "users", currentUserId, "markers", markerName);
     const imageHashes = collection(db, "users", currentUserId, "imageHashes");
     let imageHash = "";
-    let object = {};
 
     await getBase64(imageUpload)
       .then((result) => {
@@ -134,8 +126,7 @@ export default function Map() {
                 state = "",
                 country = "",
                 street = "",
-                postal = "",
-                visitTime = "";
+                postal = "";
               parts.forEach((part) => {
                 switch (true) {
                   case part.types.includes("country"):
@@ -163,7 +154,6 @@ export default function Map() {
               });
 
               exifr.parse(url).then((output) => {
-                visitTime = output.DateTimeOriginal.getTime();
                 setDoc(
                   markerRef,
                   {
@@ -174,30 +164,30 @@ export default function Map() {
                     state: state,
                     country: country,
                     postal: postal,
-                    visitTime: visitTime,
+                    visitTime: output.DateTimeOriginal.getTime(),
                     // visitTime: output.DateTimeOriginal.toUTCString(),
                     imagesRef: markerName + "-images",
                     hash: imageHash,
                   },
                   { merge: false }
                 );
-
-                object = {
-                  key: markerId,
-                  latitude: output.latitude,
-                  longitude: output.longitude,
-                  street: street,
-                  city: city,
-                  state: state,
-                  postal: postal,
-                  country: country,
-                  visitTime: visitTime,
-                };
+                renderMarkers(
+                  lat,
+                  long,
+                  markerId,
+                  street,
+                  city,
+                  postal,
+                  state,
+                  country,
+                  output.DateTimeOriginal.getTime()
+                  // output.DateTimeOriginal.toUTCString()
+                );
 
                 // Adds data for the uploaded image to the image time-marker dictionary.
                 let tempDict = dict;
                 // tempDict[output.DateTimeOriginal.toUTCString()] = markerId;
-                tempDict[visitTime] = markerId;
+                tempDict[output.DateTimeOriginal.getTime()] = markerId;
                 setDict(tempDict);
                 handlePolylines();
               });
@@ -206,7 +196,6 @@ export default function Map() {
         });
       });
     });
-    return { key: markerId, value: object };
   }
 
   async function handlePolylines() {
@@ -226,11 +215,11 @@ export default function Map() {
       }, {});
 
     Object.keys(sorted).forEach((key) => {
-      // console.log("logging: " + key, sorted[key]); // 👉️ a one, b two, z three
+      console.log("logging: " + key, sorted[key]); // 👉️ a one, b two, z three
     });
 
     let tempMarkerId;
-    // console.log(Object.values(dict)[0]);
+    console.log(Object.values(dict)[0]);
 
     for (let i = 0; i < Object.keys(dict).length - 1; i++) {
       tempMarkerId = Object.values(dict)[i];
@@ -255,8 +244,8 @@ export default function Map() {
       const long1 = firstSnapshot.data().longitude;
       const lat2 = nextSnapshot.data().latitude;
       const long2 = nextSnapshot.data().longitude;
-      // console.log("coordinates: " + lat1 + ", " + long1);
-      // console.log("coordinates: " + lat2 + ", " + long2);
+      console.log("coordinates: " + lat1 + ", " + long1);
+      console.log("coordinates: " + lat2 + ", " + long2);
     }
   }
 
@@ -287,19 +276,55 @@ export default function Map() {
   /** Calls handleAddMarker on each uploaded file upon submitting. */
   async function handleSubmit() {
     if (imageUpload.length === 0) return;
-    let temp = { ...markers };
     await imageUpload.forEach((file) => {
-      let { key: id, value: val } = handleAddMarker(file);
-      console.log(id + ", " + val);
-      temp[id] = val;
+      handleAddMarker(file);
     });
-    // setMarkers(temp);
-    // loadCoordinates();
+    loadCoordinates();
   }
 
   /** Debug button (remove on production) */
   function debug() {
-    // deleteMarker("06399855-3aee-46b8-886c-23ea5d8c4fd4");
+    // console.log(currentUserId);
+    // const markerCollectionRef = collection(
+    //   db,
+    //   "users",
+    //   currentUserId,
+    //   "markers"
+    // );
+    // const querySnapshot = await getDocs(markerCollectionRef);
+    // querySnapshot.forEach((doc) => {
+    //   console.log(doc.data().latitude);
+    // });
+  }
+
+  /** Adds a marker to the markers state */
+  function renderMarkers(
+    lat,
+    long,
+    id,
+    street,
+    city,
+    postal,
+    state,
+    country,
+    visitTime
+  ) {
+    setMarkers((prevMarkers) => {
+      return [
+        ...prevMarkers,
+        {
+          key: id,
+          latitude: parseFloat(lat),
+          longitude: parseFloat(long),
+          street: street,
+          city: city,
+          state: state,
+          postal: postal,
+          country: country,
+          visitTime: visitTime,
+        },
+      ];
+    });
   }
 
   /** Stores an array of uploaded files into the imageUpload state. */
@@ -313,7 +338,7 @@ export default function Map() {
   }
 
   async function checkDuplicateImages(imageHash) {
-    const docRef = doc(db, "users", currentUserId, "imageRefs", imageHash);
+    const docRef = doc(db, "users", currentUserId, "imageHashes", imageHash);
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
@@ -321,6 +346,14 @@ export default function Map() {
       return true;
     }
     return false;
+  }
+
+  function deleteMarker(id) {
+    setMarkers(
+      markers.filter(function (marker) {
+        return marker.key != id;
+      })
+    );
   }
 
   return (
