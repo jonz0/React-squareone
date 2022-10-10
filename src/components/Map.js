@@ -42,25 +42,58 @@ export default function Map() {
   const [dict, setDict] = useState({});
 
   useEffect(() => {
+    console.log("calling useEffect");
     async function fetchData() {
       const querySnapshot = await getDocs(markerCollectionRef);
+      let tempArray = [];
+
       querySnapshot.forEach((doc) => {
-        renderMarkers(
-          doc.data().latitude,
-          doc.data().longitude,
-          doc.id,
-          doc.data().street,
-          doc.data().city,
-          doc.data().postal,
-          doc.data().state,
-          doc.data().country,
-          doc.data().visitTime
-        );
-        // street, city, postal, state, country, visitTime
+        tempArray.push({
+          key: doc.id,
+          latitude: doc.data().latitude,
+          longitude: doc.data().longitude,
+          street: doc.data().street,
+          city: doc.data().city,
+          state: doc.data().state,
+          postal: doc.data().postal,
+          country: doc.data().country,
+          visitTime: doc.data().visitTime,
+        });
+        // setMarkers((prevMarkers) => {
+        //   return [
+        //     ...prevMarkers,
+        //     {
+        //       key: doc.id,
+        //       latitude: doc.data().latitude,
+        //       longitude: doc.data().longitude,
+        //       street: doc.data().street,
+        //       city: doc.data().city,
+        //       state: doc.data().state,
+        //       postal: doc.data().postal,
+        //       country: doc.data().country,
+        //       visitTime: doc.data().visitTime,
+        //     },
+        //   ];
+        // });
+
+        // Adds data for the uploaded image to the image time-marker dictionary.
+        let tempDict = dict;
+        // tempDict[output.DateTimeOriginal.toUTCString()] = markerId;
+        // tempDict[doc.data().visitTime] = doc.id;
+        // setDict(tempDict);
       });
+      setMarkers((prevMarkers) => {
+        return [...prevMarkers, ...tempArray];
+      }, sortMarkers());
     }
     fetchData();
+    // handlePolylines();
   }, []);
+
+  useEffect(() => {
+    console.log("markers updated");
+    console.log(markers);
+  }, [markers]);
 
   if (!isLoaded) {
     return "Loading";
@@ -171,25 +204,29 @@ export default function Map() {
                   },
                   { merge: false }
                 );
-                renderMarkers(
-                  lat,
-                  long,
-                  markerId,
-                  street,
-                  city,
-                  postal,
-                  state,
-                  country,
-                  output.DateTimeOriginal.getTime()
-                  // output.DateTimeOriginal.toUTCString()
-                );
+
+                setMarkers((prevMarkers) => {
+                  return [
+                    ...prevMarkers,
+                    {
+                      key: markerId,
+                      latitude: lat,
+                      longitude: long,
+                      street: street,
+                      city: city,
+                      state: state,
+                      postal: postal,
+                      country: country,
+                      visitTime: output.DateTimeOriginal.getTime(),
+                    },
+                  ];
+                });
 
                 // Adds data for the uploaded image to the image time-marker dictionary.
                 let tempDict = dict;
                 // tempDict[output.DateTimeOriginal.toUTCString()] = markerId;
                 tempDict[output.DateTimeOriginal.getTime()] = markerId;
                 setDict(tempDict);
-                handlePolylines();
               });
             })
             .catch((err) => console.warn("reverse geocoding fetch error"));
@@ -198,13 +235,37 @@ export default function Map() {
     });
   }
 
+  function sortMarkers() {
+    let temp = [...markers];
+    temp.sort(function (a, b) {
+      var keyA = new Date(a.visitTime),
+        keyB = new Date(b.visitTime);
+      // Compare the 2 dates
+      if (keyA < keyB) return -1;
+      if (keyA > keyB) return 1;
+      return 0;
+    });
+    setMarkers(temp);
+    console.log("markers sorted...");
+  }
+
   async function handlePolylines() {
+    console.log("handling polyines");
     if (Object.keys(dict).length < 2) {
       console.log("There are only " + Object.keys(dict).length + " markers.");
       return;
     }
 
     // console.log(Object.keys(dict).sort());
+
+    markers.sort(function (a, b) {
+      var keyA = new Date(a.updated_at),
+        keyB = new Date(b.updated_at);
+      // Compare the 2 dates
+      if (keyA < keyB) return -1;
+      if (keyA > keyB) return 1;
+      return 0;
+    });
 
     const sorted = Object.keys(dict)
       .sort()
@@ -219,7 +280,7 @@ export default function Map() {
     });
 
     let tempMarkerId;
-    console.log(Object.values(dict)[0]);
+    // console.log(Object.values(dict)[0]);
 
     for (let i = 0; i < Object.keys(dict).length - 1; i++) {
       tempMarkerId = Object.values(dict)[i];
@@ -244,8 +305,15 @@ export default function Map() {
       const long1 = firstSnapshot.data().longitude;
       const lat2 = nextSnapshot.data().latitude;
       const long2 = nextSnapshot.data().longitude;
-      console.log("coordinates: " + lat1 + ", " + long1);
-      console.log("coordinates: " + lat2 + ", " + long2);
+      setLines((prevLines) => {
+        return [
+          ...prevLines,
+          { lat1: lat1, long1: long1, lat2: lat2, long2: long2 },
+        ];
+      });
+
+      // console.log("coordinates: " + lat1 + ", " + long1);
+      // console.log("coordinates: " + lat2 + ", " + long2);
     }
   }
 
@@ -253,7 +321,7 @@ export default function Map() {
     const q = query(markerCollectionRef, orderBy("visitTime"));
     const querySnapshot = await getDocs(q);
     querySnapshot.forEach((doc) => {
-      console.log(doc.data().latitude);
+      // console.log(doc.data().latitude);
     });
   }
 
@@ -295,6 +363,10 @@ export default function Map() {
     // querySnapshot.forEach((doc) => {
     //   console.log(doc.data().latitude);
     // });
+    console.log("original");
+    console.log(markers);
+
+    sortMarkers();
   }
 
   /** Adds a marker to the markers state */
@@ -351,7 +423,7 @@ export default function Map() {
   function deleteMarker(id) {
     setMarkers(
       markers.filter(function (marker) {
-        return marker.key != id;
+        return marker.key !== id;
       })
     );
   }
@@ -421,7 +493,7 @@ export default function Map() {
           center={{ lat: 0, lng: 0 }}
         >
           <MarkerList markers={markers} deleteMarker={deleteMarker} />
-          {/* <PolylineList markers={markers} key={uuidv4()} /> */}
+          <PolylineList lines={lines} key={uuidv4()} />
           {/* <Polyline
             path={pathCoordinates}
             geodesic={true}
