@@ -2,9 +2,14 @@ import React from "react";
 import { useJsApiLoader, GoogleMap, Polyline } from "@react-google-maps/api";
 
 export default function Line(line) {
+  // console.log("start")
+  // console.log(line);
+  // console.log("test: " + line.lit);
   const coordinates = [
-    { lat: line.lat1, lng: line.lng1 },
-    { lat: line.lat2, lng: line.lng2 },
+    // { lat: 37.772, lng: -122.214 },
+    // { lat: 21.291, lng: -157.821 },
+    { lat: line.line.lat1, lng: line.line.long1 },
+    { lat: line.line.lat2, lng: line.line.long2 },
   ];
 
   return (
