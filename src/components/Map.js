@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
-import { Box, Flex, Input } from "@chakra-ui/react";
+import { Box, BreadcrumbLink, Flex, Input } from "@chakra-ui/react";
 import { useJsApiLoader, GoogleMap, Polyline } from "@react-google-maps/api";
 import MarkerList from "./MarkerList";
 import { v4 as uuidv4 } from "uuid";
@@ -21,10 +21,15 @@ import { getDatabase, child, push, update } from "firebase/database";
 import { Form, Button, Card, Alert } from "react-bootstrap";
 import exifr, { gps } from "exifr";
 import { SHA3 } from "crypto-js";
+import { retroStyle } from "../styles/Retro";
+import { auburgineStyle } from "../styles/Auburgine";
+import { eyesBurningStyle } from "../styles/EyesBurning";
+
 const center = { lat: 0, lng: 0 };
 
 export default function Map() {
   const [markers, setMarkers] = useState([]);
+  const [lines, setLines] = useState([]);
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
   });
@@ -32,9 +37,9 @@ export default function Map() {
   const currentUserId = currentUser.uid;
   const [error, setError] = useState("");
   const [imageUpload, setImageUpload] = useState(null);
-  const [visits, setVisits] = useState([]);
   const markerCollectionRef = collection(db, "users", currentUserId, "markers");
   // const [imageList, setImageList] = useState([]);
+  const latLongs = [];
 
   useEffect(() => {
     async function fetchData() {
@@ -142,10 +147,13 @@ export default function Map() {
                   case part.types.includes("postal_code"):
                     postal += part.long_name;
                     break;
+                  default:
+                    console.log("error");
+                    break;
                 }
               });
 
-              exifr.parse(url).then(async (output) => {
+              exifr.parse(url).then((output) => {
                 setDoc(
                   markerRef,
                   {
@@ -172,8 +180,6 @@ export default function Map() {
                   country,
                   output.DateTimeOriginal.toUTCString()
                 );
-
-                queryVisits();
               });
             })
             .catch((err) => console.warn("reverse geocoding fetch error"));
@@ -182,7 +188,7 @@ export default function Map() {
     });
   }
 
-  async function queryVisits() {
+  async function loadCoordinates() {
     const q = query(markerCollectionRef, orderBy("visitTime"));
     const querySnapshot = await getDocs(q);
     querySnapshot.forEach((doc) => {
@@ -207,11 +213,12 @@ export default function Map() {
   }
 
   /** Calls handleAddMarker on each uploaded file upon submitting. */
-  function handleSubmit() {
+  async function handleSubmit() {
     if (imageUpload.length === 0) return;
-    imageUpload.forEach((file) => {
+    await imageUpload.forEach((file) => {
       handleAddMarker(file);
     });
+    loadCoordinates();
   }
 
   /** Debug button (remove on production) */
@@ -302,6 +309,7 @@ export default function Map() {
             mapTypeId: "terrain",
             streetViewControl: false,
             mapTypeControl: false,
+            styles: retroStyle,
           }}
           mapContainerStyle={{ width: "100%", height: "100%" }}
         >
